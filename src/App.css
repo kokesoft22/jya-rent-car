@@ -28,13 +28,13 @@
 }
 
 .brand-logo {
-  width: 320px;
-  height: 320px;
+  width: 400px;
+  height: 400px;
   object-fit: contain;
   filter: drop-shadow(0 0 20px rgba(37, 123, 244, 0.3));
   transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  margin-top: -40px;
-  margin-bottom: -30px;
+  margin-top: -60px;
+  margin-bottom: -60px;
 }
 
 .logo-container:hover .brand-logo {
