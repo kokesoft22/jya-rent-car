@@ -120,6 +120,18 @@
 }
 
 @media (max-width: 768px) {
+    .rentals-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+        margin-bottom: 32px;
+    }
+
+    .rentals-header .btn-primary {
+        width: 100%;
+        justify-content: center;
+    }
+
     .rentals-controls {
         flex-direction: column;
         padding: 16px;

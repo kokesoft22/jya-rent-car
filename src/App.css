@@ -188,7 +188,8 @@
 
   .search-bar {
     width: 100%;
-    margin: 0 8px;
+    margin: 0;
+    padding: 6px 12px;
   }
 
   /* Force hide on all mobile devices strictly */

@@ -34,8 +34,8 @@ import './components/Customers.css';
 import Reports from './components/Reports';
 import './components/Reports.css';
 
-const SidebarItem = ({ icon: Icon, label, to, active }) => (
-  <Link to={to} className={`sidebar-item ${active ? 'active' : ''}`}>
+const SidebarItem = ({ icon: Icon, label, to, active, onAction }) => (
+  <Link to={to} className={`sidebar-item ${active ? 'active' : ''}`} onClick={onAction}>
     <Icon size={20} />
     <span>{label}</span>
   </Link>
@@ -155,18 +155,18 @@ const HeaderActions = ({ notificationsCount }) => {
   );
 };
 
-const SidebarNav = () => {
+const SidebarNav = ({ onAction }) => {
   const location = useLocation();
   const currentPath = location.pathname;
 
   return (
     <>
-      <SidebarItem icon={LayoutDashboard} label="Panel Principal" to="/" active={currentPath === '/'} />
-      <SidebarItem icon={Car} label="Vehículos" to="/fleet" active={currentPath === '/fleet'} />
-      <SidebarItem icon={Key} label="Renta" to="/rentals" active={currentPath === '/rentals'} />
-      <SidebarItem icon={DollarSign} label="Finanzas" to="/finances" active={currentPath === '/finances'} />
-      <SidebarItem icon={FileText} label="Reportes" to="/reports" active={currentPath === '/reports'} />
-      <SidebarItem icon={Users} label="Clientes" to="/customers" active={currentPath === '/customers'} />
+      <SidebarItem icon={LayoutDashboard} label="Panel Principal" to="/" active={currentPath === '/'} onAction={onAction} />
+      <SidebarItem icon={Car} label="Vehículos" to="/fleet" active={currentPath === '/fleet'} onAction={onAction} />
+      <SidebarItem icon={Key} label="Renta" to="/rentals" active={currentPath === '/rentals'} onAction={onAction} />
+      <SidebarItem icon={DollarSign} label="Finanzas" to="/finances" active={currentPath === '/finances'} onAction={onAction} />
+      <SidebarItem icon={FileText} label="Reportes" to="/reports" active={currentPath === '/reports'} onAction={onAction} />
+      <SidebarItem icon={Users} label="Clientes" to="/customers" active={currentPath === '/customers'} onAction={onAction} />
     </>
   );
 };
