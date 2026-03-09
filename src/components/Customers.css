@@ -1,0 +1,228 @@
+.customers-header {
+    margin-bottom: 48px;
+}
+
+.customers-controls {
+    padding: 24px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 40px;
+    margin-bottom: 40px;
+    border: 1px solid var(--border-color);
+}
+
+.control-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+}
+
+.control-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    padding-left: 4px;
+}
+
+.search-input {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 12px 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+.search-input:focus-within {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 15px var(--accent-blue-glow);
+}
+
+.search-input input {
+    background: transparent;
+    border: none;
+    color: white;
+    width: 100%;
+    outline: none;
+    font-size: 14px;
+}
+
+.customers-table-container {
+    padding: 0;
+    overflow: visible;
+    /* Allow menu to overflow vertically */
+    border: 1px solid var(--border-color);
+    width: 100%;
+    position: relative;
+}
+
+.customers-table-wrapper {
+    overflow-x: auto;
+    width: 100%;
+    border-radius: var(--radius-lg);
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 80px;
+    /* Space for the last dropdown */
+    margin-bottom: -80px;
+    /* Offset padding to maintain layout */
+}
+
+.customers-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.customers-table th {
+    text-align: left;
+    padding: 20px 24px;
+    background: rgba(255, 255, 255, 0.02);
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.customers-table td {
+    padding: 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    color: var(--text-primary);
+    vertical-align: middle;
+}
+
+.customers-table tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.user-info-cell {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.avatar-small {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1rem;
+    color: white;
+    box-shadow: 0 4px 12px rgba(6, 188, 249, 0.2);
+}
+
+.icon-text-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.icon-text-cell span {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .customers-header {
+        margin-bottom: 24px;
+    }
+
+    .customers-controls {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 16px;
+        gap: 16px;
+    }
+
+    .control-section {
+        width: 100%;
+    }
+
+    .customers-table {
+        min-width: 600px;
+    }
+}
+
+/* Actions Menu Styles */
+.action-menu-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.actions-dropdown {
+    position: absolute;
+    bottom: 100%;
+    /* Open upwards */
+    right: 0;
+    margin-bottom: 8px;
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+    min-width: 160px;
+    z-index: 1000;
+    overflow: hidden;
+    animation: slideInUp 0.2s ease-out;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 16px;
+    background: none;
+    border: none;
+    color: #f1f5f9;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+}
+
+.dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #3b82f6;
+}
+
+.dropdown-item.delete:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.menu-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 999;
+}

@@ -1,0 +1,490 @@
+/* Dashboard Specific Styles - Template Design */
+.dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.welcome-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 0;
+}
+
+.welcome-text {
+    font-size: 30px;
+    font-weight: 800;
+    margin-bottom: 4px;
+    color: var(--text-primary);
+    letter-spacing: -0.5px;
+}
+
+.welcome-subtext {
+    color: var(--text-muted);
+    font-size: 15px;
+}
+
+/* Stat Cards - Template Layout */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+.stat-card {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    background: var(--bg-card);
+    border-radius: 16px;
+}
+
+.stat-card:hover {
+    border-color: rgba(37, 123, 244, 0.2);
+    transform: translateY(-2px);
+}
+
+/* Gradient bar at bottom of stat cards */
+.stat-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--primary), var(--accent-blue));
+    opacity: 0.5;
+}
+
+.stat-card .stat-icon {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+}
+
+.stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.stat-title {
+    font-size: 14px;
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 800;
+    margin: 4px 0;
+    color: var(--text-primary);
+}
+
+.stat-trend {
+    font-size: 12px;
+    color: var(--success);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    background: rgba(16, 185, 129, 0.1);
+    padding: 2px 8px;
+    border-radius: 9999px;
+    width: fit-content;
+}
+
+/* Charts Grid */
+.charts-grid {
+    display: grid;
+    grid-template-columns: 1.8fr 1.2fr;
+    gap: 32px;
+}
+
+.chart-container {
+    padding: 24px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-card);
+    border-radius: 16px;
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.chart-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.chart-period {
+    font-size: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 6px 14px;
+    border-radius: 20px;
+    color: var(--text-muted);
+    font-weight: 500;
+    border: 1px solid var(--border-color);
+}
+
+/* Bottom Grid - Recent Rentals & Maintenance */
+.bottom-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 32px;
+}
+
+.view-all-link {
+    color: var(--primary);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.view-all-link:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+}
+
+/* Recent Rentals Table */
+.recent-rentals-card {
+    overflow: hidden;
+}
+
+.recent-rentals-card .chart-header {
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 0;
+}
+
+.recent-rentals-table {
+    display: flex;
+    flex-direction: column;
+}
+
+.rr-table-header {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1fr 1fr 40px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.rr-table-row {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1fr 1fr 40px;
+    align-items: center;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.2s;
+}
+
+.rr-table-row:last-child {
+    border-bottom: none;
+}
+
+.rr-table-row:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.rr-vehicle-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.rr-vehicle-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+}
+
+.rr-vehicle-name {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.rr-customer {
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.rr-amount {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.rr-actions {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rr-actions:hover {
+    color: var(--primary);
+}
+
+.rr-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+/* Rental Badges - Template Style */
+.rental-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.badge-active {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.badge-completed {
+    background: rgba(148, 163, 184, 0.1);
+    color: #94a3b8;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.badge-cancelled {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.badge-paid {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.badge-partial {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.badge-pending {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.badge-reservation {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+/* Maintenance Card */
+.maintenance-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.maintenance-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.maintenance-item:last-child {
+    border-bottom: none;
+}
+
+.maintenance-date {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 48px;
+    height: 48px;
+    padding: 6px;
+    background: rgba(37, 123, 244, 0.15);
+    border-radius: 12px;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.m-month {
+    font-size: 10px;
+    color: var(--primary);
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.m-day {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1;
+}
+
+.maintenance-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 2px;
+}
+
+.m-vehicle {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.m-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.m-urgency {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+}
+
+.m-urgency.urgent {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.m-urgency.scheduled {
+    background: rgba(148, 163, 184, 0.1);
+    color: #94a3b8;
+}
+
+.manage-schedule-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 24px;
+    padding: 12px;
+    border-radius: 12px;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.manage-schedule-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--primary);
+}
+
+@media (max-width: 1400px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .page-content {
+        padding: 16px;
+    }
+
+    .welcome-text {
+        font-size: 24px;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .charts-grid,
+    .bottom-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .chart-container {
+        padding: 16px;
+    }
+
+    .stat-card {
+        padding: 20px;
+    }
+
+    .rr-table-header {
+        display: none;
+        /* Hide header on mobile cards */
+    }
+
+    .rr-table-row {
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        padding: 16px;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 12px;
+        margin-bottom: 8px;
+    }
+
+    .rr-customer,
+    .rr-amount {
+        display: none;
+        /* Hide secondary info in simple view or we can keep it as extra rows */
+    }
+}
+
+@media (max-width: 1200px) {
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .bottom-grid {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,545 @@
+/* Fleet Specific Styles */
+.fleet {
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+}
+
+.fleet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+@media (max-width: 768px) {
+    .fleet-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .fleet-controls {
+        flex-direction: column;
+        padding: 16px;
+        align-items: stretch;
+        gap: 16px;
+    }
+
+    .filter-group {
+        overflow-x: auto;
+        padding-bottom: 8px;
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .filter-btn {
+        flex-shrink: 0;
+    }
+
+    .divider {
+        display: none;
+    }
+
+    .vehicle-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .page-title {
+        font-size: 24px;
+    }
+}
+
+.page-title {
+    font-size: 32px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.page-subtitle {
+    color: var(--text-muted);
+    font-size: 15px;
+}
+
+.fleet-controls {
+    padding: 24px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 32px;
+    border: 1px solid var(--border-color);
+}
+
+.search-input {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+    color: var(--text-muted);
+}
+
+.search-input input {
+    background: transparent;
+    border: none;
+    color: white;
+    width: 100%;
+    outline: none;
+    font-size: 15px;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.filter-btn {
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-size: 14px;
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-secondary);
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.filter-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+}
+
+.filter-btn.active {
+    background: var(--accent-blue);
+    color: white;
+    box-shadow: 0 4px 15px var(--accent-blue-glow);
+}
+
+.divider {
+    width: 1px;
+    height: 32px;
+    background: var(--border-color);
+    margin: 0 16px;
+}
+
+.vehicle-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+    gap: 32px;
+}
+
+.vehicle-card {
+    padding: 0;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid var(--border-color);
+}
+
+.vehicle-card:hover {
+    transform: translateY(-12px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.vehicle-image {
+    height: 240px;
+    position: relative;
+}
+
+.vehicle-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.vehicle-card:hover .vehicle-image img {
+    transform: scale(1.05);
+}
+
+.vehicle-image .status-badge {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+}
+
+.status-badge {
+    padding: 6px 14px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    z-index: 2;
+}
+
+.status-badge.available {
+    background: rgba(16, 185, 129, 0.9);
+    color: white;
+}
+
+.status-badge.rented {
+    background: rgba(239, 68, 68, 0.9);
+    color: white;
+}
+
+.status-badge.maintenance {
+    background: rgba(245, 158, 11, 0.9);
+    color: white;
+}
+
+.vehicle-info {
+    padding: 28px;
+    background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.3));
+}
+
+.vehicle-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+}
+
+.vehicle-header h3 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--text-primary);
+}
+
+.vehicle-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.vehicle-year {
+    font-size: 14px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.vehicle-mileage {
+    font-size: 13px;
+    color: var(--accent-blue);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.vehicle-last-maintenance {
+    font-size: 12px;
+    color: #f59e0b;
+    /* Orange for maintenance */
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 2px;
+}
+
+.vehicle-insurance {
+    font-size: 12px;
+    color: #10b981;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 2px;
+}
+
+.vehicle-insurance.expiring {
+    color: #f59e0b;
+    animation: pulse-warning 2s ease-in-out infinite;
+}
+
+.vehicle-insurance.expired {
+    color: #ef4444;
+    animation: pulse-danger 1.5s ease-in-out infinite;
+}
+
+.vehicle-value {
+    font-size: 13px;
+    color: #10b981;
+    /* Green for financial value */
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 2px;
+}
+
+@keyframes pulse-warning {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
+}
+
+@keyframes pulse-danger {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.vehicle-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.rate-label {
+    display: block;
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+}
+
+.rate-value {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--accent-blue);
+}
+
+.vehicle-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-icon,
+.btn-subtle {
+    background: rgba(255, 255, 255, 0.04);
+    padding: 10px;
+    border-radius: 12px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.btn-icon:hover,
+.btn-subtle:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.modal-content {
+    background: var(--bg-card);
+    width: 95%;
+    max-width: 600px;
+    max-height: 95vh;
+    padding: 16px 20px;
+    border-radius: 20px;
+    position: relative;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    /* Changed to auto to allow full modal scrolling on small devices */
+}
+
+.modal-form {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.detail-grid {
+    flex: 1;
+    display: grid !important;
+    grid-template-columns: 1.1fr 1fr;
+    /* Columna izquierda más estrecha */
+    gap: 16px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+@media (max-width: 768px) {
+    .detail-grid {
+        grid-template-columns: 1fr;
+        overflow: visible;
+        /* Clear overflow restriction */
+        display: flex !important;
+        flex-direction: column;
+    }
+}
+
+.maintenance-section-container {
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+    /* Changed from hidden */
+    height: auto;
+    /* Changed from 100% to let it grow naturally */
+    min-height: 0;
+}
+
+.btn-primary-small {
+    background: var(--accent-blue);
+    color: white;
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.btn-primary-small:hover {
+    box-shadow: 0 4px 15px var(--accent-blue-glow);
+    transform: translateY(-2px);
+}
+
+/* Maintenance History Styles */
+.maintenance-section {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+}
+
+.maintenance-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.maintenance-header h4 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.maintenance-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px dashed var(--border-color);
+    margin-bottom: 20px;
+}
+
+.maintenance-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+    flex: 1;
+    padding-right: 8px;
+    padding-bottom: 8px;
+}
+
+.maintenance-log-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    width: 100%;
+}
+
+@media (max-width: 480px) {
+    .maintenance-log-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .log-cost {
+        align-self: flex-end;
+    }
+}
+
+.log-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.log-date {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.log-desc {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.log-cost {
+    font-size: 14px;
+    font-weight: 700;
+    color: #ef4444;
+}
+
+.btn-add-log {
+    background: rgba(37, 123, 244, 0.1);
+    color: var(--accent-blue);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid rgba(37, 123, 244, 0.2);
+    cursor: pointer;
+}
+
+.btn-add-log:hover {
+    background: var(--accent-blue);
+    color: white;
+}
+
+/* Upload Area */
+.upload-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 20px;
+    border: 2px dashed rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.upload-area:hover {
+    border-color: var(--accent-blue);
+    background: rgba(59, 130, 246, 0.08);
+    color: var(--accent-blue);
+}

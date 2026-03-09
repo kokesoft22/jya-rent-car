@@ -1,0 +1,244 @@
+/* Finances Specific Styles */
+.finances {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.finances-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+
+.header-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.finance-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+}
+
+.finance-card {
+    padding: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.finance-card-title {
+    display: block;
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.finance-card-value {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.finance-status {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.finance-status.positive {
+    color: var(--success);
+}
+
+.finance-status.negative {
+    color: var(--danger);
+}
+
+.finance-card-icon {
+    width: 50px;
+    height: 50px;
+    background: var(--border-color);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-blue);
+}
+
+.finances-charts {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+}
+
+.main-chart-container,
+.pie-chart-container {
+    padding: 24px;
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.chart-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.chart-legend {
+    display: flex;
+    gap: 16px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.legend-item::before {
+    content: '';
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+}
+
+.legend-item.income::before {
+    background: var(--accent-blue);
+}
+
+.legend-item.expense::before {
+    background: var(--danger);
+}
+
+.pie-chart-container .chart-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.pie-legend {
+    width: 100%;
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.pie-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+}
+
+.pie-legend-item .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.pie-legend-item .label {
+    flex: 1;
+    color: var(--text-secondary);
+}
+
+.pie-legend-item .value {
+    font-weight: 600;
+}
+
+.expense-list {
+    padding: 24px;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.finance-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.finance-table th {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.finance-table td {
+    padding: 16px 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.badge.category {
+    padding: 4px 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.amount-neg {
+    color: var(--danger);
+    font-weight: 600;
+}
+
+.finance-table-container {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+}
+
+@media (max-width: 768px) {
+    .finances-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .finance-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .finances-charts {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .finance-table {
+        min-width: 600px;
+    }
+
+    .header-actions {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .header-actions .btn-primary {
+        width: 100%;
+        justify-content: center;
+    }
+}
