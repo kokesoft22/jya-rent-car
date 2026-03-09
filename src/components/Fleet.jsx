@@ -656,8 +656,7 @@ const Fleet = () => {
                         className={`filter-btn ${filter === 'mantenimiento' ? 'active' : ''}`}
                         onClick={() => setFilter('mantenimiento')}
                     >Mantenimiento</button>
-                    <div className="divider"></div>
-                    <button className="btn-subtle"><Filter size={18} /> Filtros</button>
+
                 </div>
             </div>
 

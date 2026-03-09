@@ -445,8 +445,7 @@ const Rentals = () => {
                             className={`filter-btn ${statusFilter === 'completed' ? 'active' : ''}`}
                             onClick={() => setStatusFilter('completed')}
                         >Completadas</button>
-                        <div className="divider"></div>
-                        <button className="btn-subtle"><Filter size={18} /> Filtros</button>
+
                     </div>
                 </div>
             </div>
