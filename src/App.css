@@ -19,7 +19,7 @@
 }
 
 .logo-container {
-  padding: 10px 16px 0px 16px;
+  padding: 10px 16px 10px 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -34,7 +34,7 @@
   filter: drop-shadow(0 0 20px rgba(37, 123, 244, 0.3));
   transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   margin-top: -60px;
-  margin-bottom: -60px;
+  margin-bottom: -40px;
 }
 
 .logo-container:hover .brand-logo {
@@ -216,14 +216,14 @@
 
   .logo-container {
     padding-top: 20px;
-    padding-bottom: 0px;
+    padding-bottom: 10px;
   }
 
   .brand-logo {
     width: 280px;
     height: 280px;
     margin-top: -30px;
-    margin-bottom: -30px;
+    margin-bottom: -10px;
   }
 }
 
