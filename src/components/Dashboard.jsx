@@ -265,7 +265,7 @@ const Dashboard = () => {
             <div className="welcome-section">
                 <div className="welcome-content">
                     <h1 className="welcome-text">¡Bienvenido de nuevo, J&A!</h1>
-                    <p className="welcome-subtext">Aquí tienes un resumen de lo que está pasando en tu flota hoy.</p>
+                    <p className="welcome-subtext">Aquí tienes un resumen de lo que está pasando en tu Rent Car hoy.</p>
                 </div>
                 <Link to="/new-rental" className="btn-primary">
                     <PlusCircle size={18} />
