@@ -344,27 +344,7 @@
     border-color: rgba(255, 255, 255, 0.1);
 }
 
-.modal-content {
-    background: var(--bg-card);
-    width: 95%;
-    max-width: 600px;
-    max-height: 95vh;
-    padding: 16px 20px;
-    border-radius: 20px;
-    position: relative;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    border: 1px solid var(--border-color);
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    /* Changed to auto to allow full modal scrolling on small devices */
-}
-
-.modal-form {
-    flex: 1;
-    overflow-y: auto;
-    padding-right: 4px;
-}
+/* Modal styles removed - handled by App.css global styles */
 
 .detail-grid {
     flex: 1;
