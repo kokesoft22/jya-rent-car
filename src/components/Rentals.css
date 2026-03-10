@@ -144,8 +144,8 @@
     }
 
     .filter-group {
-        overflow-x: auto;
-        padding-bottom: 8px;
+        flex-wrap: wrap;
+        gap: 8px;
         justify-content: flex-start;
     }
 
