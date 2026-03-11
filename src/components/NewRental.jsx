@@ -8,7 +8,9 @@ import {
     ArrowRight,
     ArrowLeft,
     FileText,
-    Loader
+    X,
+    Loader,
+    AlertTriangle
 } from 'lucide-react';
 import { vehicleService } from '../services/vehicleService';
 import { customerService } from '../services/customerService';
@@ -20,6 +22,7 @@ const NewRental = () => {
     const [step, setStep] = useState(1);
     const [vehicles, setVehicles] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [availabilityConflicts, setAvailabilityConflicts] = useState([]);
 
     const [formData, setFormData] = useState({
         vehicle_id: '',
@@ -44,8 +47,12 @@ const NewRental = () => {
     }, []);
 
     const loadVehicles = async () => {
-        const data = await vehicleService.getAll();
-        setVehicles(data.filter(v => v.status === 'available'));
+        try {
+            const data = await vehicleService.getAll();
+            setVehicles(data.filter(v => v.status === 'available'));
+        } catch (err) {
+            console.error('Error loading vehicles:', err);
+        }
     };
 
     const handleVehicleChange = (e) => {
@@ -55,6 +62,20 @@ const NewRental = () => {
         const rate = vehicle ? vehicle.daily_rate : 0;
         setFormData(prev => ({ ...prev, vehicle_id: id, custom_daily_rate: rate }));
         calculateTotal(rate, formData.start_date, formData.end_date);
+        checkConflicts(id, formData.start_date, formData.end_date);
+    };
+
+    const checkConflicts = async (vehicleId, start, end) => {
+        if (vehicleId && start && end) {
+            try {
+                const conflicts = await rentalService.checkAvailability(vehicleId, start, end);
+                setAvailabilityConflicts(conflicts);
+            } catch (err) {
+                console.error('Error checking conflicts:', err);
+            }
+        } else {
+            setAvailabilityConflicts([]);
+        }
     };
 
     const calculateTotal = (rate, start, end) => {
@@ -81,6 +102,10 @@ const NewRental = () => {
             }
             if (formData.end_date < formData.start_date) {
                 alert('La fecha de entrega no puede ser anterior a la fecha de recogida.');
+                return;
+            }
+            if (availabilityConflicts && availabilityConflicts.length > 0) {
+                alert('El vehículo ya tiene una renta programada en esas fechas. Por favor, elige otras fechas u otro vehículo.');
                 return;
             }
         }
@@ -184,6 +209,7 @@ const NewRental = () => {
                                         onChange={(e) => {
                                             setFormData({ ...formData, start_date: e.target.value });
                                             calculateTotal(formData.custom_daily_rate || selectedVehicle?.daily_rate, e.target.value, formData.end_date);
+                                            checkConflicts(formData.vehicle_id, e.target.value, formData.end_date);
                                         }}
                                     />
                                 </div>
@@ -197,10 +223,17 @@ const NewRental = () => {
                                         onChange={(e) => {
                                             setFormData({ ...formData, end_date: e.target.value });
                                             calculateTotal(formData.custom_daily_rate || selectedVehicle?.daily_rate, formData.start_date, e.target.value);
+                                            checkConflicts(formData.vehicle_id, formData.start_date, e.target.value);
                                         }}
                                     />
                                 </div>
                             </div>
+                            {availabilityConflicts?.length > 0 && (
+                                <div className="error-message" style={{ marginTop: '15px', padding: '12px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <AlertTriangle size={18} />
+                                    <span><strong>Atención:</strong> Este vehículo ya tiene una renta en el rango seleccionado.</span>
+                                </div>
+                            )}
                             {formData.rental_days > 0 && (
                                 <div className="duration-badge" style={{ marginTop: '15px', display: 'flex', alignItems: 'center', gap: '8px', padding: '12px', background: 'rgba(6, 188, 249, 0.1)', borderRadius: '8px', color: '#06bcf9', border: '1px solid rgba(6, 188, 249, 0.2)' }}>
                                     <Calendar size={18} />

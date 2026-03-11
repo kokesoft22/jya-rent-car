@@ -12,8 +12,43 @@ export const rentalService = {
         return data;
     },
 
+    async checkAvailability(vehicleId, startDate, endDate, excludeRentalId = null) {
+        let query = supabase
+            .from('rentals')
+            .select('id, start_date, end_date, customers(full_name)')
+            .eq('vehicle_id', vehicleId)
+            .neq('status', 'cancelled')
+            .or(`and(start_date.lte.${endDate},end_date.gte.${startDate})`);
+
+        if (excludeRentalId) {
+            query = query.neq('id', excludeRentalId);
+        }
+
+        const { data, error } = await query;
+        if (error) throw error;
+        return data;
+    },
+
+    async getByVehicle(vehicleId) {
+        const { data, error } = await supabase
+            .from('rentals')
+            .select('*, customers(full_name)')
+            .eq('vehicle_id', vehicleId)
+            .neq('status', 'cancelled')
+            .order('start_date', { ascending: true });
+
+        if (error) throw error;
+        return data;
+    },
+
     async create(rental) {
-        // 1. Create the rental record
+        // 1. Check for conflicts first
+        const conflicts = await this.checkAvailability(rental.vehicle_id, rental.start_date, rental.end_date);
+        if (conflicts.length > 0) {
+            throw new Error('El vehículo ya tiene una renta programada en esas fechas.');
+        }
+
+        // 2. Create the rental record
         const { data, error: rentalError } = await supabase
             .from('rentals')
             .insert([rental])
@@ -21,18 +56,10 @@ export const rentalService = {
 
         if (rentalError) throw rentalError;
 
-        // 2. Update vehicle status to 'rented'
-        const { error: vehicleError } = await supabase
-            .from('vehicles')
-            .update({ status: 'rented' })
-            .eq('id', rental.vehicle_id);
-
-        if (vehicleError) throw vehicleError;
-
         return data[0];
     },
 
-    async complete(id, vehicleId) {
+    async complete(id) {
         // 1. Update rental status
         const { error: rentalError } = await supabase
             .from('rentals')
@@ -40,14 +67,6 @@ export const rentalService = {
             .eq('id', id);
 
         if (rentalError) throw rentalError;
-
-        // 2. Update vehicle status back to 'available'
-        const { error: vehicleError } = await supabase
-            .from('vehicles')
-            .update({ status: 'available' })
-            .eq('id', vehicleId);
-
-        if (vehicleError) throw vehicleError;
     },
 
     async delete(id) {

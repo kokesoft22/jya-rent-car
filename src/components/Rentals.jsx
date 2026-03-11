@@ -17,7 +17,8 @@ import {
     Edit2,
     DollarSign,
     X,
-    Loader
+    Loader,
+    Plus
 } from 'lucide-react';
 import { rentalService } from '../services/rentalService';
 import './Rentals.css';
@@ -383,10 +384,10 @@ const Rentals = () => {
         return searchMatch && r.status === statusFilter;
     });
 
-    const handleCompleteRental = async (id, vehicleId) => {
+    const handleCompleteRental = async (id) => {
         if (confirm('¿Estás seguro de que deseas marcar esta renta como completada? El vehículo volverá a estar disponible.')) {
             try {
-                await rentalService.complete(id, vehicleId);
+                await rentalService.complete(id);
                 loadRentals();
             } catch (err) {
                 alert('Error al completar renta: ' + err.message);
@@ -407,13 +408,15 @@ const Rentals = () => {
         <div className="page-content rentals">
             <header className="rentals-header">
                 <div className="rentals-header-content">
-                    <h1 className="page-title">Historial de Renta</h1>
-                    <p className="page-subtitle">Gestiona tus contratos activos y revisa el historial de rentas.</p>
+                    <div>
+                        <h1 className="page-title">Historial de Renta</h1>
+                        <p className="page-subtitle">Gestiona tus contratos activos y revisa el historial de rentas.</p>
+                    </div>
+                    <Link to="/new-rental" className="btn-primary">
+                        <Plus size={18} />
+                        <span>Nueva Renta</span>
+                    </Link>
                 </div>
-                <Link to="/new-rental" className="btn-primary">
-                    <PlusCircle size={18} />
-                    <span>Nueva Renta</span>
-                </Link>
             </header>
 
             <div className="rentals-controls glass-card">

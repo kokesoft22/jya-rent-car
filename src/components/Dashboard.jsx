@@ -104,8 +104,20 @@ const Dashboard = () => {
 
             // Process Fleet Stats
             const total = fleetData.length;
-            const available = fleetData.filter(v => v.status === 'available').length;
             const maintenance = fleetData.filter(v => v.status === 'maintenance').length;
+            
+            // Fix: Calculate available/rented dynamically based on today's active rentals
+            const todayStr = now.toISOString().split('T')[0];
+            const { data: currentRentals } = await supabase
+                .from('rentals')
+                .select('vehicle_id')
+                .eq('status', 'active')
+                .lte('start_date', todayStr)
+                .gte('end_date', todayStr);
+            
+            const currentlyRentedIds = new Set((currentRentals || []).map(r => r.vehicle_id));
+            const available = fleetData.filter(v => v.status !== 'maintenance' && !currentlyRentedIds.has(v.id)).length;
+            const rentedCount = currentlyRentedIds.size;
 
             // 3. Get Financial Data (all rentals not cancelled)
             const { data: rentalsFinance } = await supabase
@@ -142,7 +154,7 @@ const Dashboard = () => {
                 totalEarnings,
                 avgIncomePerVehicle,
                 accountsReceivable,
-                activeRentals: activeRentalsCount || 0,
+                activeRentals: rentedCount,
                 fleetTotal: total,
                 fleetAvailable: available,
                 maintenanceDue: maintenance,
