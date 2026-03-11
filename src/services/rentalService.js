@@ -29,6 +29,21 @@ export const rentalService = {
         return data;
     },
 
+    async getNextRental(vehicleId) {
+        const now = new Date().toISOString();
+        const { data, error } = await supabase
+            .from('rentals')
+            .select('*, customers(full_name)')
+            .eq('vehicle_id', vehicleId)
+            .neq('status', 'cancelled')
+            .gt('start_date', now)
+            .order('start_date', { ascending: true })
+            .limit(1);
+
+        if (error) throw error;
+        return data.length > 0 ? data[0] : null;
+    },
+
     async getByVehicle(vehicleId) {
         const { data, error } = await supabase
             .from('rentals')

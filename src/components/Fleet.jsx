@@ -28,6 +28,7 @@ import { rentalService } from '../services/rentalService';
 const VehicleCard = ({ vehicle, onEdit, onDelete, onView }) => {
     const [currentStatus, setCurrentStatus] = useState(vehicle.status);
     const [activeRental, setActiveRental] = useState(null);
+    const [nextRental, setNextRental] = useState(null);
 
     useEffect(() => {
         const checkStatus = async () => {
@@ -37,12 +38,17 @@ const VehicleCard = ({ vehicle, onEdit, onDelete, onView }) => {
                 if (activeRentals.length > 0) {
                     setCurrentStatus('rented');
                     setActiveRental(activeRentals[0]);
-                } else if (vehicle.status !== 'maintenance') {
-                    setCurrentStatus('available');
-                    setActiveRental(null);
+                    setNextRental(null);
                 } else {
-                    setCurrentStatus('maintenance');
+                    if (vehicle.status !== 'maintenance') {
+                        setCurrentStatus('available');
+                    } else {
+                        setCurrentStatus('maintenance');
+                    }
                     setActiveRental(null);
+                    // Buscar próxima renta si no hay una activa
+                    const nextR = await rentalService.getNextRental(vehicle.id);
+                    setNextRental(nextR);
                 }
             } catch (err) {
                 console.error('Error checking vehicle status:', err);
@@ -59,6 +65,45 @@ const VehicleCard = ({ vehicle, onEdit, onDelete, onView }) => {
                     {currentStatus === 'available' ? 'Disponible' :
                         currentStatus === 'rented' ? `Rentado • ${activeRental?.customers?.full_name || 'Cargando...'}` : 'Mantenimiento'}
                 </span>
+                
+                {currentStatus === 'available' && nextRental && (
+                    <div className="upcoming-badge" style={{
+                        position: 'absolute',
+                        top: '40px',
+                        left: '12px',
+                        background: 'rgba(234, 179, 8, 0.9)',
+                        color: '#000',
+                        padding: '4px 10px',
+                        borderRadius: '20px',
+                        fontSize: '11px',
+                        fontWeight: '700',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                        backdropFilter: 'blur(4px)',
+                        border: '1px solid rgba(255,255,255,0.2)'
+                    }}>
+                        <Clock size={12} />
+                        <span>
+                            {(() => {
+                                const start = new Date(nextRental.start_date);
+                                const today = new Date();
+                                
+                                // Resetear horas para comparar solo fechas
+                                const startDate = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+                                const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                                
+                                const diffTime = startDate - todayDate;
+                                const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+                                
+                                if (diffDays === 0) return `Renta Hoy • ${nextRental.customers?.full_name}`;
+                                if (diffDays === 1) return `Renta Mañana • ${nextRental.customers?.full_name}`;
+                                return `Renta en ${diffDays} días • ${nextRental.customers?.full_name}`;
+                            })()}
+                        </span>
+                    </div>
+                )}
             </div>
             <div className="vehicle-info">
                 <div className="vehicle-header">
