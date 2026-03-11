@@ -57,6 +57,14 @@
     .page-title {
         font-size: 24px;
     }
+
+    .filter-btn .full-text {
+        display: none;
+    }
+
+    .filter-btn .short-text {
+        display: inline;
+    }
 }
 
 .page-title {
@@ -118,6 +126,10 @@
 .filter-btn:hover {
     background: rgba(255, 255, 255, 0.08);
     color: var(--text-primary);
+}
+
+.filter-btn .short-text {
+    display: none;
 }
 
 .filter-btn.active {
