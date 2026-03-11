@@ -36,7 +36,6 @@ const Login = () => {
           <div className="login-logo-container">
              <img src={logo} alt="J&A Rent Car Logo" className="login-logo-img" />
           </div>
-          <h1>Bienvenido</h1>
           <p>Ingresa tus credenciales para acceder</p>
         </div>
 
