@@ -14,7 +14,7 @@ const AddVehicleModal = ({ isOpen, onClose, onVehicleAdded }) => {
         mileage: '',
         daily_rate: '',
         insurance_expiry: '',
-        last_maintenance_date: '',
+        last_maintenance: '',
         purchase_price: '',
         status: 'available'
     });
@@ -28,7 +28,7 @@ const AddVehicleModal = ({ isOpen, onClose, onVehicleAdded }) => {
                 mileage: '',
                 daily_rate: '',
                 insurance_expiry: '',
-                last_maintenance_date: '',
+                last_maintenance: '',
                 purchase_price: '',
                 status: 'available'
             });
@@ -66,7 +66,7 @@ const AddVehicleModal = ({ isOpen, onClose, onVehicleAdded }) => {
             alert('La fecha de vencimiento del seguro no puede estar en el pasado.');
             return;
         }
-        if (formData.last_maintenance_date && formData.last_maintenance_date > today) {
+        if (formData.last_maintenance && formData.last_maintenance > today) {
             alert('La fecha del último mantenimiento no puede ser en el futuro.');
             return;
         }
@@ -182,8 +182,8 @@ const AddVehicleModal = ({ isOpen, onClose, onVehicleAdded }) => {
                                 type="date"
                                 className="input-field"
                                 max={new Date().toISOString().split('T')[0]}
-                                value={formData.last_maintenance_date}
-                                onChange={(e) => setFormData({ ...formData, last_maintenance_date: e.target.value })}
+                                value={formData.last_maintenance}
+                                onChange={(e) => setFormData({ ...formData, last_maintenance: e.target.value })}
                             />
                         </div>
                     </div>

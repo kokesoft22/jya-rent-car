@@ -117,6 +117,7 @@ const EditVehicleModal = ({ vehicle, isOpen, onClose, onSaved }) => {
         mileage: '',
         daily_rate: '',
         insurance_expiry: '',
+        last_maintenance: '',
         purchase_price: '',
         status: 'available'
     });
@@ -131,6 +132,7 @@ const EditVehicleModal = ({ vehicle, isOpen, onClose, onSaved }) => {
                 mileage: vehicle.mileage || '',
                 daily_rate: vehicle.daily_rate || '',
                 insurance_expiry: vehicle.insurance_expiry || '',
+                last_maintenance: vehicle.last_maintenance || '',
                 purchase_price: vehicle.purchase_price || '',
                 status: vehicle.status || 'available'
             });
@@ -223,12 +225,22 @@ const EditVehicleModal = ({ vehicle, isOpen, onClose, onSaved }) => {
                             />
                         </div>
                         <div className="form-group">
+                            <label>Último Mantenimiento</label>
+                            <input type="date" className="input-field"
+                                value={formData.last_maintenance}
+                                onChange={(e) => setFormData({ ...formData, last_maintenance: e.target.value })}
+                            />
+                        </div>
+                    </div>
+                    <div className="form-row">
+                        <div className="form-group">
                             <label>Valor del Vehículo ($)</label>
                             <input type="number" className="input-field" required
                                 value={formData.purchase_price}
                                 onChange={(e) => setFormData({ ...formData, purchase_price: e.target.value })}
                             />
                         </div>
+                        {/* Puedes añadir otro campo aquí si es necesario o dejarlo así */}
                     </div>
                     <div className="form-group">
                         <label>Estado</label>
