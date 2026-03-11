@@ -69,28 +69,30 @@ const VehicleCard = ({ vehicle, onEdit, onDelete, onView }) => {
                 {currentStatus === 'available' && nextRental && (
                     <div className="upcoming-badge" style={{
                         position: 'absolute',
-                        top: '40px',
-                        left: '12px',
-                        background: 'rgba(234, 179, 8, 0.9)',
+                        bottom: '12px',
+                        right: '12px',
+                        background: 'linear-gradient(135deg, rgba(234, 179, 8, 0.95), rgba(202, 138, 4, 0.95))',
                         color: '#000',
-                        padding: '4px 10px',
-                        borderRadius: '20px',
+                        padding: '6px 12px',
+                        borderRadius: '12px',
                         fontSize: '11px',
-                        fontWeight: '700',
+                        fontWeight: '800',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '6px',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                        backdropFilter: 'blur(4px)',
-                        border: '1px solid rgba(255,255,255,0.2)'
+                        gap: '8px',
+                        boxShadow: '0 8px 20px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.3)',
+                        backdropFilter: 'blur(8px)',
+                        border: '1px solid rgba(255,255,255,0.2)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.3px',
+                        zIndex: 10
                     }}>
-                        <Clock size={12} />
+                        <Clock size={14} strokeWidth={2.5} />
                         <span>
                             {(() => {
                                 const start = new Date(nextRental.start_date);
                                 const today = new Date();
                                 
-                                // Resetear horas para comparar solo fechas
                                 const startDate = new Date(start.getFullYear(), start.getMonth(), start.getDate());
                                 const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
                                 
