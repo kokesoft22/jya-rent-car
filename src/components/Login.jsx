@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { LogIn, Mail, Lock, AlertCircle } from 'lucide-react';
+import logo from '../assets/logo.png';
 import './Login.css';
 
 const Login = () => {
@@ -32,9 +33,8 @@ const Login = () => {
     <div className="login-page">
       <div className="login-container glass-card">
         <div className="login-header">
-          <div className="login-logo">
-             <span className="logo-text">J&A</span>
-             <span className="logo-subtext">Rent Car</span>
+          <div className="login-logo-container">
+             <img src={logo} alt="J&A Rent Car Logo" className="login-logo-img" />
           </div>
           <h1>Bienvenido</h1>
           <p>Ingresa tus credenciales para acceder</p>
