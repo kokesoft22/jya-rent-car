@@ -68,6 +68,7 @@
     align-items: center;
     gap: 32px;
     border: 1px solid var(--border-color);
+    box-sizing: border-box;
 }
 
 .search-input {

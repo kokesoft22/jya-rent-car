@@ -13,6 +13,7 @@
     gap: 40px;
     margin-bottom: 40px;
     border: 1px solid var(--border-color);
+    box-sizing: border-box;
 }
 
 .control-section {
@@ -103,6 +104,7 @@
     border: 1px solid var(--border-color);
     width: 100%;
     position: relative;
+    box-sizing: border-box;
 }
 
 .rentals-table-wrapper {
@@ -110,6 +112,7 @@
     width: 100%;
     border-radius: var(--radius-lg);
     -webkit-overflow-scrolling: touch;
+    box-sizing: border-box;
 }
 
 .rentals-table {

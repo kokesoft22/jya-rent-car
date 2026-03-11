@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Car,
@@ -11,7 +11,9 @@ import {
   Bell,
   Menu,
   X,
-  FileText
+  FileText,
+  LogOut,
+  ChevronDown
 } from 'lucide-react';
 import logo from './assets/logo.png';
 import avatar from './assets/avatar.png';
@@ -33,6 +35,8 @@ import Customers from './components/Customers';
 import './components/Customers.css';
 import Reports from './components/Reports';
 import './components/Reports.css';
+import Login from './components/Login';
+import './components/Login.css';
 
 const SidebarItem = ({ icon: Icon, label, to, active, onAction }) => (
   <Link to={to} className={`sidebar-item ${active ? 'active' : ''}`} onClick={onAction}>
@@ -42,12 +46,33 @@ const SidebarItem = ({ icon: Icon, label, to, active, onAction }) => (
 );
 
 const App = () => {
-  const [notifications, setNotifications] = React.useState([]);
-  const [sidebarOpen, setSidebarOpen] = React.useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  React.useEffect(() => {
-    fetchNotifications();
+  useEffect(() => {
+    // Verificar sesión inicial
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoading(false);
+    });
+
+    // Escuchar cambios de autenticación
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (session) {
+      fetchNotifications();
+    }
+  }, [session]);
 
   const fetchNotifications = async () => {
     try {
@@ -73,8 +98,25 @@ const App = () => {
     }
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
+
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
   const closeSidebar = () => setSidebarOpen(false);
+
+  if (loading) {
+    return (
+      <div className="loading-screen">
+        <div className="loader"></div>
+        <span>Cargando JyA Rent Car...</span>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return <Login />;
+  }
 
   return (
     <Router>
@@ -100,6 +142,10 @@ const App = () => {
 
           <div className="sidebar-footer">
             <SidebarItem icon={Settings} label="Configuración" to="/settings" onAction={closeSidebar} />
+            <button className="sidebar-item logout-btn-item" onClick={handleLogout}>
+              <LogOut size={20} />
+              <span>Cerrar Sesión</span>
+            </button>
           </div>
         </aside>
 
@@ -112,7 +158,11 @@ const App = () => {
             <div className="search-bar glass-card">
               <input type="text" placeholder="Buscar vehículos..." />
             </div>
-            <HeaderActions notificationsCount={notifications.length} />
+            <HeaderActions 
+              notificationsCount={notifications.length} 
+              userEmail={session.user.email}
+              onLogout={handleLogout}
+            />
           </header>
 
           <Routes>
@@ -123,7 +173,7 @@ const App = () => {
             <Route path="/reports" element={<Reports />} />
             <Route path="/new-rental" element={<NewRental />} />
             <Route path="/customers" element={<Customers />} />
-            <Route path="*" element={<Dashboard />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
       </div>
@@ -131,7 +181,9 @@ const App = () => {
   );
 };
 
-const HeaderActions = ({ notificationsCount }) => {
+const HeaderActions = ({ notificationsCount, userEmail, onLogout }) => {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <div className="header-actions">
       <div className="user-profile-v2">
@@ -142,13 +194,26 @@ const HeaderActions = ({ notificationsCount }) => {
 
         <div className="header-divider"></div>
 
-        <div className="user-info-text">
-          <span className="user-name">J&A Admin</span>
-          <span className="user-role">SUPER ADMIN</span>
+        <div className="user-info-text" onClick={() => setMenuOpen(!menuOpen)}>
+          <span className="user-name">Admin</span>
+          <span className="user-role">{userEmail}</span>
         </div>
 
-        <div className="user-avatar-container">
+        <div className="user-avatar-container" onClick={() => setMenuOpen(!menuOpen)}>
           <img src={avatar} alt="Admin" className="user-avatar-img" />
+          <ChevronDown size={14} className={`dropdown-icon ${menuOpen ? 'open' : ''}`} />
+          
+          {menuOpen && (
+            <div className="user-dropdown-menu glass-card">
+              <div className="dropdown-header">
+                <span className="dropdown-user-email">{userEmail}</span>
+              </div>
+              <button onClick={onLogout} className="dropdown-item logout-action">
+                <LogOut size={18} />
+                <span>Cerrar Sesión</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
