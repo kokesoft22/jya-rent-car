@@ -1080,6 +1080,7 @@ const Fleet = () => {
                 vehicle={editVehicle}
                 isOpen={!!editVehicle}
                 onSaved={loadVehicles}
+                onClose={() => setEditVehicle(null)}
             />
 
             <VehicleDetailModal
