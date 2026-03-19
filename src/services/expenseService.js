@@ -129,5 +129,15 @@ export const expenseService = {
         });
 
         return profitability.sort((a, b) => b.netProfit - a.netProfit);
+    },
+
+    async delete(id) {
+        const { error } = await supabase
+            .from('expenses')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+        return true;
     }
 };

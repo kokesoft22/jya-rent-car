@@ -21,21 +21,21 @@ import { supabase } from './lib/supabase';
 import './App.css';
 
 // Componentes temporales para secciones pendientes
-import Dashboard from './components/Dashboard';
+import Dashboard from './pages/Dashboard';
 import './components/Dashboard.css';
-import Fleet from './components/Fleet';
-import './components/Fleet.css';
-import Rentals from './components/Rentals';
+import Fleet from './pages/Fleet';
+import './pages/Fleet.css';
+import Rentals from './pages/Rentals';
 import './components/Rentals.css';
-import Finances from './components/Finances';
+import Finances from './pages/Finances';
 import './components/Finances.css';
-import NewRental from './components/NewRental';
+import NewRental from './pages/NewRental';
 import './components/NewRental.css';
-import Customers from './components/Customers';
+import Customers from './pages/Customers';
 import './components/Customers.css';
-import Reports from './components/Reports';
+import Reports from './pages/Reports';
 import './components/Reports.css';
-import Login from './components/Login';
+import Login from './pages/Login';
 import './components/Login.css';
 
 const SidebarItem = ({ icon: Icon, label, to, active, onAction }) => (

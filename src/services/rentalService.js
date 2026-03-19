@@ -13,9 +13,12 @@ export const rentalService = {
     },
 
     async checkAvailability(vehicleId, startDate, endDate, excludeRentalId = null) {
+        // A vehicle is UNAVAILABLE if there is any rental that:
+        // 1. Is NOT cancelled
+        // 2. Overlaps with the requested range
         let query = supabase
             .from('rentals')
-            .select('id, start_date, end_date, customers(full_name)')
+            .select('id, start_date, end_date, status, customers(full_name)')
             .eq('vehicle_id', vehicleId)
             .neq('status', 'cancelled')
             .or(`and(start_date.lte.${endDate},end_date.gte.${startDate})`);
@@ -26,7 +29,47 @@ export const rentalService = {
 
         const { data, error } = await query;
         if (error) throw error;
-        return data;
+        
+        // Only consider 'active' or 'pending' as conflicts for availability
+        return (data || []).filter(r => r.status === 'active' || r.status === 'pending');
+    },
+
+    async getActiveRental(vehicleId, date) {
+        // Find a rental that is 'active' or 'pending' and includes the specified date
+        
+        // Helper to normalize dates (DD/MM/YYYY or YYYY-MM-DD to YYYY-MM-DD)
+        const normalizeDate = (dateStr) => {
+            if (!dateStr) return null;
+            if (dateStr.includes('/')) {
+                const [d, m, y] = dateStr.split('/');
+                return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+            }
+            return dateStr;
+        };
+
+        const targetDate = normalizeDate(date);
+
+        // 1. Fetch ALL rentals for this vehicle to inspect
+        const { data: allRentals, error: allErr } = await supabase
+            .from('rentals')
+            .select('*, customers(full_name)')
+            .eq('vehicle_id', vehicleId);
+        
+        if (allErr) {
+            console.error('Error fetching ALL rentals:', allErr);
+            throw allErr;
+        }
+
+        // 2. Filter manually with normalized dates
+        const matchingRental = allRentals.find(r => {
+            const isStatusMatch = ['active', 'pending'].includes(r.status);
+            const rStart = normalizeDate(r.start_date);
+            const rEnd = normalizeDate(r.end_date);
+            const isDateMatch = rStart <= targetDate && rEnd >= targetDate;
+            return isStatusMatch && isDateMatch;
+        });
+
+        return matchingRental || null;
     },
 
     async getNextRental(vehicleId) {
@@ -71,6 +114,15 @@ export const rentalService = {
 
         if (rentalError) throw rentalError;
 
+        // Simple synchronization: If the rental starts today or earlier and hasn't ended, mark vehicle as rented.
+        const today = new Date().toISOString().split('T')[0];
+        if (rental.start_date <= today && rental.end_date >= today) {
+            await supabase
+                .from('vehicles')
+                .update({ status: 'rented' })
+                .eq('id', rental.vehicle_id);
+        }
+
         return data[0];
     },
 
@@ -82,15 +134,70 @@ export const rentalService = {
             .eq('id', id);
 
         if (rentalError) throw rentalError;
+
+        // 2. Get vehicle_id to update its status
+        const { data: rentalData } = await supabase
+            .from('rentals')
+            .select('vehicle_id')
+            .eq('id', id)
+            .single();
+
+        if (rentalData && rentalData.vehicle_id) {
+            await supabase
+                .from('vehicles')
+                .update({ status: 'available' })
+                .eq('id', rentalData.vehicle_id);
+        }
     },
 
     async delete(id) {
-        const { error } = await supabase
+        try {
+            // 1. Get rental details before deleting
+            const { data: rental, error: fetchError } = await supabase
+                .from('rentals')
+                .select('vehicle_id, status, start_date, end_date')
+                .eq('id', id)
+                .single();
+
+            if (fetchError) throw fetchError;
+
+            // 2. Delete the rental record
+            const { error: deleteError } = await supabase
+                .from('rentals')
+                .delete()
+                .eq('id', id);
+
+            if (deleteError) throw deleteError;
+
+            // 3. Update vehicle status if the deleted rental was active today
+            if (rental && rental.vehicle_id) {
+                const today = new Date().toISOString().split('T')[0];
+                const isCurrentlyRented = rental.status === 'active' && 
+                                          rental.start_date <= today && 
+                                          rental.end_date >= today;
+                
+                if (isCurrentlyRented) {
+                    await supabase
+                        .from('vehicles')
+                        .update({ status: 'available' })
+                        .eq('id', rental.vehicle_id);
+                }
+            }
+        } catch (error) {
+            console.error('Error in rentalService.delete:', error);
+            throw error;
+        }
+    },
+
+    async update(id, updates) {
+        const { data, error } = await supabase
             .from('rentals')
-            .delete()
-            .eq('id', id);
+            .update(updates)
+            .eq('id', id)
+            .select();
 
         if (error) throw error;
+        return data[0];
     },
 
     async addPayment(id, paymentAmount) {

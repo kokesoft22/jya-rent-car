@@ -5,6 +5,116 @@
     gap: 32px;
 }
 
+.form-step {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 200px; /* Large radius for card effect */
+    padding: 32px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+/* Wait, I should use the 20px radius from my previous successful step, 200px was a typo in my thought process but 20px was in the code I viewed */
+.form-step {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 32px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.rate-inline-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--text-secondary);
+    padding: 12px 0;
+}
+
+.rate-input-container {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 8px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.currency-prefix {
+    color: #22c55e;
+    font-weight: 700;
+}
+
+.days-suffix {
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.original-rate-label {
+    color: #eab308;
+    font-size: 12px;
+    margin-left: 8px;
+    opacity: 0.8;
+}
+
+.summary-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 0;
+    margin: 8px 0;
+    border-top: 1px dashed rgba(255, 255, 255, 0.1);
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.summary-total-row .label {
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+}
+
+.summary-total-row .value {
+    font-size: 32px;
+    font-weight: 800;
+    color: #06bcf9;
+    text-shadow: 0 0 20px rgba(6, 188, 249, 0.3);
+}
+
+.payment-section {
+    background: rgba(6, 188, 249, 0.03);
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid rgba(6, 188, 249, 0.1);
+    width: 100%;
+    margin-bottom: 24px;
+}
+
+.payment-section .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.payment-section .big-input {
+    background: rgba(0, 0, 0, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    height: 60px;
+    font-size: 24px;
+    text-align: left;
+    padding-left: 20px;
+    border-radius: 12px;
+}
+
 .rental-header {
     display: flex;
     justify-content: space-between;
@@ -99,6 +209,28 @@
     transition: border-color 0.2s;
 }
 
+.big-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 16px;
+    color: white;
+    font-size: 2rem;
+    font-weight: bold;
+    text-align: left;
+    outline: none;
+    transition: all 0.2s;
+    appearance: textfield; /* Firefox */
+}
+
+/* Chrome, Safari, Edge, Opera */
+.big-input::-webkit-outer-spin-button,
+.big-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
 .input-field:focus {
     border-color: var(--accent-blue);
 }
@@ -112,34 +244,60 @@
     padding-top: 24px;
     border-top: 1px solid var(--border-color);
     display: flex;
-    gap: 16px;
-}
-
-.summary-list {
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: var(--radius-md);
-    padding: 24px;
-    display: flex;
     flex-direction: column;
     gap: 16px;
-    margin-bottom: 32px;
 }
 
-.summary-item {
-    display: flex;
-    justify-content: space-between;
-    color: var(--text-secondary);
-    font-size: 14px;
+.form-footer button {
+    width: 100%;
+    justify-content: center;
 }
 
-.summary-total {
-    display: flex;
-    justify-content: space-between;
-    padding-top: 16px;
-    border-top: 1px solid var(--border-color);
-    color: white;
+.input-field.small-input {
+    width: 80px;
+    padding: 8px 10px;
+    font-size: 16px;
     font-weight: 700;
-    font-size: 18px;
+    color: #06bcf9;
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--border-color);
+    text-align: center;
+}
+
+.payment-section .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.payment-section h3 {
+    margin-bottom: 0 !important;
+}
+
+.no-margin {
+    margin-bottom: 16px !important;
+}
+
+.payment-status-summary {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: var(--text-secondary);
+    padding-top: 16px;
+}
+
+.payment-status-summary .pending-balance strong {
+    color: #ef4444;
+}
+
+.payment-status-summary .total-balance strong {
+    color: #22c55e;
+}
+
+.checkbox-container.small {
+    font-size: 13px;
+    color: var(--text-secondary);
 }
 
 .rental-summary {
@@ -152,18 +310,20 @@
     margin-bottom: 20px;
 }
 
-.summary-vehicle-img {
+.summary-image {
     width: 100%;
-    height: 160px;
+    height: 180px;
     border-radius: var(--radius-md);
     overflow: hidden;
     margin-bottom: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.summary-vehicle-img img {
+.summary-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    display: block;
 }
 
 .summary-details .detail {
@@ -182,66 +342,86 @@
     font-weight: 600;
 }
 
-.value.highlighting {
+.value.highlight {
     color: var(--accent-blue);
     font-size: 18px;
     font-weight: 800;
 }
 
-/* Payment Options */
-.payment-options {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.payment-option {
+.days-indicator-box {
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 14px 18px;
+    gap: 12px;
+    padding: 14px 20px;
+    background: rgba(6, 188, 249, 0.08);
+    border: 1px solid rgba(6, 188, 249, 0.2);
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(255, 255, 255, 0.02);
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.payment-option:hover {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.payment-option.selected {
-    background: rgba(255, 255, 255, 0.06);
-}
-
-.payment-option-radio {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    transition: all 0.2s ease;
-}
-
-.duration-badge {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 16px;
-    border-radius: 10px;
-    background: rgba(6, 188, 249, 0.1);
-    border: 1px solid rgba(6, 188, 249, 0.25);
-    color: var(--accent-blue);
+    color: #06bcf9;
     font-size: 14px;
-    font-weight: 500;
+    margin-top: 8px;
+    margin-bottom: 24px;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.days-indicator-box strong {
+    color: white;
+    font-weight: 700;
+}
+
+.error-message-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 8px;
     margin-top: 16px;
+    color: #ef4444;
+    font-size: 14px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* Responsive adjustments */
+.text-success { color: #22c55e !important; }
+.text-warning { color: #eab308 !important; }
+.text-info { color: #06bcf9 !important; }
+.text-error { color: #ef4444 !important; }
+.font-bold { font-weight: 700 !important; }
+.mt-4 { margin-top: 16px !important; }
+
+.status-with-dot {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.status-dot.pending { background-color: #ef4444; }
+.status-dot.partial { background-color: #eab308; }
+.status-dot.paid { background-color: #22c55e; }
+.status-dot.reservation { background-color: #06bcf9; }
+
+@media (max-width: 1024px) {
+    .rental-form-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .rental-summary {
+        order: -1;
+    }
+}
+
 @media (max-width: 768px) {
     .rental-header {
         flex-direction: column;
@@ -269,11 +449,6 @@
         width: auto;
     }
 
-    .rental-form-container {
-        grid-template-columns: 1fr;
-        gap: 20px;
-    }
-
     .form-main {
         padding: 20px;
     }
@@ -295,14 +470,5 @@
     .form-footer button {
         width: 100%;
         justify-content: center;
-    }
-
-    .summary-list {
-        padding: 16px;
-    }
-
-    .rental-summary {
-        order: -1;
-        /* Show summary at top or keep it below? User screenshot showed it sidebar-like. Let's keep it below or at top? Usually top is better for summary or just keep default order. */
     }
 }

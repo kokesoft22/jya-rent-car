@@ -1,0 +1,123 @@
+import React, { useEffect } from 'react';
+import { X, Save, Loader } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { toast } from 'sonner';
+import { customerService } from '../../services/customerService';
+
+const customerSchema = z.object({
+    full_name: z.string().min(3, "El nombre debe tener al menos 3 caracteres"),
+    id_number: z.string().min(6, "La identificación debe tener al menos 6 caracteres"),
+    phone: z.string().optional().nullable(),
+    email: z.string().email("Correo electrónico inválido").optional().nullable().or(z.literal('')),
+});
+
+const EditCustomerModal = ({ isOpen, onClose, customer, onCustomerUpdated }) => {
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors, isSubmitting }
+    } = useForm({
+        resolver: zodResolver(customerSchema),
+        defaultValues: {
+            full_name: '',
+            id_number: '',
+            phone: '',
+            email: ''
+        }
+    });
+
+    useEffect(() => {
+        if (isOpen && customer) {
+            reset({
+                full_name: customer.full_name || '',
+                id_number: customer.id_number || '',
+                phone: customer.phone || '',
+                email: customer.email || ''
+            });
+        }
+    }, [isOpen, customer, reset]);
+
+    if (!isOpen || !customer) return null;
+
+    const onSubmit = async (data) => {
+        try {
+            // Remove null or empty strings replacing them with undefined/null as needed, or just send them
+            await customerService.update(customer.id, data);
+            toast.success('Cliente actualizado con éxito');
+            onCustomerUpdated();
+            onClose();
+        } catch (err) {
+            console.error(err);
+            toast.error('Error al actualizar cliente: ' + err.message);
+        }
+    };
+
+    return (
+        <div className="modal-overlay">
+            <div className="modal-content glass-card" style={{ maxWidth: '500px' }}>
+                <div className="modal-header">
+                    <h2>Editar Cliente</h2>
+                    <button className="btn-icon" onClick={onClose}><X size={20} /></button>
+                </div>
+                <form onSubmit={handleSubmit(onSubmit)} className="modal-form">
+                    <div className="form-group">
+                        <label>Nombre Completo *</label>
+                        <input
+                            type="text"
+                            className={`input-field ${errors.full_name ? 'error-border' : ''}`}
+                            placeholder="Ej. Juan Pérez"
+                            {...register('full_name')}
+                        />
+                        {errors.full_name && <span className="error-text" style={{color: 'red', fontSize: '12px'}}>{errors.full_name.message}</span>}
+                    </div>
+
+                    <div className="form-group">
+                        <label>Identificación / Cédula / Pasaporte *</label>
+                        <input
+                            type="text"
+                            className={`input-field ${errors.id_number ? 'error-border' : ''}`}
+                            placeholder="Ej. 402-XXXXXXX-X"
+                            {...register('id_number')}
+                        />
+                        {errors.id_number && <span className="error-text" style={{color: 'red', fontSize: '12px'}}>{errors.id_number.message}</span>}
+                    </div>
+
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>Teléfono</label>
+                            <input
+                                type="tel"
+                                className="input-field"
+                                placeholder="Ej. 809-555-0199"
+                                {...register('phone')}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Correo Electrónico</label>
+                            <input
+                                type="email"
+                                className={`input-field ${errors.email ? 'error-border' : ''}`}
+                                placeholder="ejemplo@correo.com"
+                                {...register('email')}
+                            />
+                            {errors.email && <span className="error-text" style={{color: 'red', fontSize: '12px'}}>{errors.email.message}</span>}
+                        </div>
+                    </div>
+
+                    <div className="modal-footer">
+                        <button type="button" className="btn-subtle" onClick={onClose}>Cancelar</button>
+                        <button type="submit" className="btn-primary" disabled={isSubmitting}>
+                            {isSubmitting ? <Loader className="animate-spin" size={18} /> : <Save size={18} />}
+                            <span>{isSubmitting ? 'Guardando...' : 'Guardar Cambios'}</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+};
+
+export default EditCustomerModal;
