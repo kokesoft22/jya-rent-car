@@ -47,7 +47,7 @@ const Login = () => {
       <div className="login-container glass-card animate-fade-in-up">
         <div className="login-header">
           <div className="login-logo-container">
-             <img src={logo} alt="J&A Rent Car Logo" className="login-logo-img" />
+             <img src={logo} alt="Logo" className="login-logo-img" />
           </div>
         </div>
 
@@ -89,10 +89,6 @@ const Login = () => {
             )}
           </button>
         </form>
-        
-        <div className="login-footer mt-10">
-          <p className="text-muted text-[10px] text-center">&copy; {new Date().getFullYear()} J&A Rent Car System v2.0<br/>Todos los derechos reservados.</p>
-        </div>
       </div>
     </div>
   );
