@@ -34,6 +34,7 @@ export const useAddExpense = () => {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['finances'] });
             queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+            queryClient.invalidateQueries({ queryKey: ['maintenance'] });
         }
     });
 };

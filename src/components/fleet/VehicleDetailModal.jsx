@@ -36,6 +36,15 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
         category: 'maintenance'
     });
 
+    const CATEGORY_MAP = {
+        maintenance: 'Mantenimiento',
+        insurance: 'Seguros',
+        fuel: 'Combustibles',
+        cleaning: 'Limpieza',
+        taxes: 'Impuestos',
+        other: 'Otros'
+    };
+
 
     useEffect(() => {
         if (isOpen && vehicle) {
@@ -410,7 +419,7 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
 
                     <div className="maintenance-section-container">
                         <div className="detail-tabs" style={{ display: 'flex', gap: '8px', marginBottom: '20px', borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '0 16px' }}>
-                            <button className={`tab-btn ${activeTab === 'maintenance' ? 'active' : ''}`} onClick={() => { setActiveTab('maintenance'); setEditingRentalId(null); setEditingLogId(null); }} style={{ padding:'12px', background:'none', border:'none', color:activeTab==='maintenance'?'#0ea5e9':'#94a3b8', borderBottom:activeTab==='maintenance'?'2px solid #0ea5e9':'none', cursor:'pointer' }}>Mantenimiento</button>
+                            <button className={`tab-btn ${activeTab === 'maintenance' ? 'active' : ''}`} onClick={() => { setActiveTab('maintenance'); setEditingRentalId(null); setEditingLogId(null); }} style={{ padding:'12px', background:'none', border:'none', color:activeTab==='maintenance'?'#0ea5e9':'#94a3b8', borderBottom:activeTab==='maintenance'?'2px solid #0ea5e9':'none', cursor:'pointer' }}>Gastos del Vehículo</button>
                             <button className={`tab-btn ${activeTab === 'agenda' ? 'active' : ''}`} onClick={() => { setActiveTab('agenda'); setEditingRentalId(null); setEditingLogId(null); }} style={{ padding:'12px', background:'none', border:'none', color:activeTab==='agenda'?'#0ea5e9':'#94a3b8', borderBottom:activeTab==='agenda'?'2px solid #0ea5e9':'none', cursor:'pointer' }}>Agenda</button>
                             <button 
                                 className={`tab-btn ${activeTab === 'new-rental' ? 'active' : ''}`} 
@@ -427,7 +436,7 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
                         {activeTab === 'maintenance' ? (
                             <>
                                 <div className="maintenance-header">
-                                    <h4>Historial de Mantenimiento</h4>
+                                    <h4>Historial de Gastos</h4>
                                     <button className="btn-add-log" onClick={() => setShowForm(!showForm)}>
                                         <Plus size={14} /> {showForm ? 'Cancelar' : 'Agregar'}
                                     </button>
@@ -457,8 +466,22 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
                                     {filteredLogs.map(log => (
                                         <div key={log.id} className="maintenance-log-item" style={{ position: 'relative' }}>
                                             <div className="log-info" style={{ flex: 1 }}>
-                                                <span className="log-date">{formatDateSafe(log.date)}</span>
-                                                <span className="log-desc">
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                                                    <span className="log-date">{formatDateSafe(log.date)}</span>
+                                                    <span style={{ 
+                                                        fontSize: '10px', 
+                                                        padding: '2px 8px', 
+                                                        borderRadius: '12px', 
+                                                        background: 'rgba(255,255,255,0.08)', 
+                                                        color: '#94a3b8',
+                                                        textTransform: 'uppercase',
+                                                        fontWeight: 600,
+                                                        letterSpacing: '0.5px'
+                                                    }}>
+                                                        {CATEGORY_MAP[log.category] || 'Gasto'}
+                                                    </span>
+                                                </div>
+                                                <span className="log-desc" style={{ fontSize: '14px', color: '#e2e8f0' }}>
                                                     {log.description} {log.mileage_at_service ? `- ${Number(log.mileage_at_service).toLocaleString()} km` : ''}
                                                 </span>
                                             </div>
