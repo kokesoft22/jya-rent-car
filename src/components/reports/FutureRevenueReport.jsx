@@ -77,8 +77,8 @@ const FutureRevenueReport = ({ onBack }) => {
                     <table className="custom-table w-full">
                         <thead>
                             <tr>
-                                <th>Fecha Inicio</th>
-                                <th>Fecha Fin</th>
+                                <th className="hidden sm:table-cell">Fecha Inicio</th>
+                                <th className="hidden sm:table-cell">Fecha Fin</th>
                                 <th>Vehículo</th>
                                 <th className="text-right">Monto Total</th>
                                 <th className="text-right">Estado del Pago</th>
@@ -93,30 +93,35 @@ const FutureRevenueReport = ({ onBack }) => {
                                     
                                     return (
                                         <tr key={r.id}>
-                                            <td className="font-medium text-white">
+                                            <td className="font-medium text-white hidden sm:table-cell">
                                                 {new Date(r.start_date).toLocaleDateString()}
                                             </td>
-                                            <td className="text-muted">
+                                            <td className="text-muted hidden sm:table-cell">
                                                 {new Date(r.end_date).toLocaleDateString()}
                                             </td>
                                             <td>
-                                                <span className="font-medium">{r.vehicles?.model}</span>
+                                                <span className="font-medium block sm:inline">{r.vehicles?.model}</span>
+                                                <span className="text-[10px] text-muted sm:hidden block mt-0.5">
+                                                    {new Date(r.start_date).toLocaleDateString()}
+                                                </span>
                                             </td>
                                             <td className="text-right font-bold text-primary">
                                                 ${total.toLocaleString()}
                                             </td>
                                             <td className="text-right">
                                                 {isFullyPaid ? (
-                                                    <span className="badge badge-active border-success/20 text-success">
-                                                        Pagado Completamente
+                                                    <span className="badge badge-active border-success/20 text-success whitespace-nowrap">
+                                                        <span className="hidden sm:inline">Pago Completo</span>
+                                                        <span className="sm:hidden">Completo</span>
                                                     </span>
                                                 ) : paid > 0 ? (
-                                                    <span className="text-warning text-sm font-medium">
-                                                        Adelanto: ${paid.toLocaleString()}
+                                                    <span className="text-warning text-[11px] sm:text-sm font-medium whitespace-nowrap">
+                                                        <span className="hidden sm:inline">Adelanto: </span>${paid.toLocaleString()}
                                                     </span>
                                                 ) : (
-                                                    <span className="text-danger text-sm font-medium">
-                                                        Pendiente de pago
+                                                    <span className="text-danger text-[11px] sm:text-sm font-medium whitespace-nowrap">
+                                                        <span className="hidden sm:inline">Pendiente de pago</span>
+                                                        <span className="sm:hidden">Pendiente</span>
                                                     </span>
                                                 )}
                                             </td>
