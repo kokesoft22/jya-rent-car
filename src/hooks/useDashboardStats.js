@@ -114,6 +114,15 @@ export const useDashboardStats = () => {
             // 5. Maintenance
             const { data: maintenanceVehicles } = await supabase.from('vehicles').select('*').eq('status', 'maintenance');
 
+            // 6. Returning Soon
+            const { data: returningSoon } = await supabase
+                .from('rentals')
+                .select('*, vehicles(model, image_url), customers(full_name)')
+                .eq('status', 'active')
+                .gte('end_date', todayStr)
+                .order('end_date', { ascending: true })
+                .limit(4);
+
             return {
                 stats: {
                     totalEarnings,
@@ -128,7 +137,8 @@ export const useDashboardStats = () => {
                 chartData,
                 vehicleStats,
                 recentRentals: recentRentals || [],
-                maintenanceVehicles: maintenanceVehicles || []
+                maintenanceVehicles: maintenanceVehicles || [],
+                returningSoon: returningSoon || []
             };
         },
         staleTime: 5 * 60 * 1000, // 5 minutes cache

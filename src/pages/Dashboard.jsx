@@ -17,30 +17,13 @@ import {
     CartesianGrid,
     Tooltip,
     ResponsiveContainer,
-    LabelList,
-    PieChart,
-    Pie,
-    Cell,
-    Legend
+    LabelList
 } from 'recharts';
 import { useDashboardStats } from '../hooks/useDashboardStats';
 import StatCard from '../components/dashboard/StatCard';
 import '../components/Dashboard.css';
 
 const COLORS = ['#06bcf9', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
-const RADIAN = Math.PI / 180;
-
-const renderFleetLabel = ({ cx, cy, midAngle, outerRadius, value }) => {
-    const radius = outerRadius + 15;
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-    return (
-        <text x={x} y={y} fill="#cbd5e1" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize="12" fontWeight="600">
-            {value}
-        </text>
-    );
-};
 
 const Dashboard = () => {
     const { data: dData, isLoading, error, refetch } = useDashboardStats();
@@ -48,7 +31,7 @@ const Dashboard = () => {
     if (isLoading) return <div className="page-content center">Cargando dashboard...</div>;
     if (error) return <div className="page-content center error-text">Error: {error.message}</div>;
 
-    const { stats, chartData, vehicleStats, recentRentals, maintenanceVehicles } = dData;
+    const { stats, chartData, vehicleStats, recentRentals, returningSoon } = dData;
 
     const getStatusBadge = (status) => {
         const map = {
@@ -178,57 +161,50 @@ const Dashboard = () => {
                         )}
                     </div>
                 </div>
-                <div className="glass-card chart-container fleet-status-card">
+                <div className="glass-card chart-container returning-soon-card">
                     <div className="chart-header">
-                        <h3>Estado de la Flota</h3>
+                        <h3>Próximas Devoluciones</h3>
                     </div>
-                    <div className="chart-body" style={{ height: '300px' }}>
-                        {[
-                            { name: 'Disponibles', value: stats.fleetAvailable, color: '#10b981' },
-                            { name: 'Rentados', value: stats.activeRentals, color: '#3b82f6' },
-                            { name: 'En Mantenimiento', value: stats.maintenanceDue, color: '#f59e0b' }
-                        ].filter(item => item.value > 0).length > 0 ? (
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie
-                                        data={[
-                                            { name: 'Disponibles', value: stats.fleetAvailable, color: '#10b981' },
-                                            { name: 'Rentados', value: stats.activeRentals, color: '#3b82f6' },
-                                            { name: 'En Mantenimiento', value: stats.maintenanceDue, color: '#f59e0b' }
-                                        ].filter(item => item.value > 0)}
-                                        cx="50%"
-                                        cy="45%"
-                                        innerRadius={60}
-                                        outerRadius={80}
-                                        paddingAngle={5}
-                                        dataKey="value"
-                                        stroke="transparent"
-                                        label={renderFleetLabel}
-                                        labelLine={{ stroke: '#94a3b8', strokeWidth: 1 }}
-                                    >
-                                        {[
-                                            { name: 'Disponibles', value: stats.fleetAvailable, color: '#10b981' },
-                                            { name: 'Rentados', value: stats.activeRentals, color: '#3b82f6' },
-                                            { name: 'En Mantenimiento', value: stats.maintenanceDue, color: '#f59e0b' }
-                                        ].filter(item => item.value > 0).map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip
-                                        contentStyle={{ background: '#101620', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }}
-                                        itemStyle={{ color: '#fff' }}
-                                        formatter={(value) => [`${value} vehículos`, '']}
-                                    />
-                                    <Legend 
-                                        verticalAlign="bottom" 
-                                        height={40} 
-                                        iconType="circle" 
-                                        wrapperStyle={{ fontSize: '13px', paddingTop: '10px' }}
-                                    />
-                                </PieChart>
-                            </ResponsiveContainer>
+                    <div className="maintenance-list">
+                        {returningSoon && returningSoon.length > 0 ? (
+                            returningSoon.map(rental => {
+                                const endDate = new Date(rental.end_date);
+                                const today = new Date();
+                                const diffTime = endDate.getTime() - today.getTime();
+                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                
+                                let urgencyClass = '';
+                                let urgencyText = '';
+                                if (diffDays < 0) {
+                                    urgencyClass = 'urgent';
+                                    urgencyText = 'Retraso';
+                                } else if (diffDays === 0) {
+                                    urgencyClass = 'warning';
+                                    urgencyText = 'Hoy';
+                                } else if (diffDays === 1) {
+                                    urgencyClass = 'info';
+                                    urgencyText = 'Mañana';
+                                } else {
+                                    urgencyClass = 'normal';
+                                    urgencyText = `En ${diffDays} días`;
+                                }
+
+                                return (
+                                <div key={rental.id} className="maintenance-item">
+                                    <div className="maintenance-date">
+                                        <span className="m-month">{endDate.toLocaleString('es-ES', { month: 'short' }).toUpperCase()}</span>
+                                        <span className="m-day">{endDate.getDate()}</span>
+                                    </div>
+                                    <div className="maintenance-info">
+                                        <span className="m-vehicle">{rental.vehicles?.model || 'Desconocido'}</span>
+                                        <span className="m-desc">{rental.customers?.full_name || 'Cliente'}</span>
+                                    </div>
+                                    <span className={`m-urgency ${urgencyClass}`}>{urgencyText}</span>
+                                </div>
+                                );
+                            })
                         ) : (
-                            <div className="center-text muted py-4">No hay datos de flota.</div>
+                            <div className="center-text muted py-4">No hay devoluciones próximas.</div>
                         )}
                     </div>
                 </div>
