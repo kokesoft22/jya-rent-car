@@ -251,6 +251,17 @@
 .border-success { border-color: var(--success); }
 .border-warning { border-color: var(--warning); }
 .border-danger { border-color: var(--danger); }
+.whitespace-nowrap { white-space: nowrap; }
+
+/* Responsive Utilities */
+.hidden { display: none !important; }
+
+@media (min-width: 640px) {
+    .sm\:inline { display: inline !important; }
+    .sm\:table-cell { display: table-cell !important; }
+    .sm\:hidden { display: none !important; }
+    .sm\:block { display: block !important; }
+}
 
 /* Typography */
 .text-3xl { font-size: 32px; line-height: 1.2; }
