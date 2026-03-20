@@ -17,13 +17,30 @@ import {
     CartesianGrid,
     Tooltip,
     ResponsiveContainer,
-    LabelList
+    LabelList,
+    PieChart,
+    Pie,
+    Cell,
+    Legend
 } from 'recharts';
 import { useDashboardStats } from '../hooks/useDashboardStats';
 import StatCard from '../components/dashboard/StatCard';
 import '../components/Dashboard.css';
 
 const COLORS = ['#06bcf9', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
+const RADIAN = Math.PI / 180;
+
+const renderFleetLabel = ({ cx, cy, midAngle, outerRadius, value }) => {
+    const radius = outerRadius + 15;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    return (
+        <text x={x} y={y} fill="#cbd5e1" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize="12" fontWeight="600">
+            {value}
+        </text>
+    );
+};
 
 const Dashboard = () => {
     const { data: dData, isLoading, error, refetch } = useDashboardStats();
@@ -161,34 +178,59 @@ const Dashboard = () => {
                         )}
                     </div>
                 </div>
-
-                <div className="glass-card chart-container maintenance-card">
+                <div className="glass-card chart-container fleet-status-card">
                     <div className="chart-header">
-                        <h3>Próximos Mantenimientos</h3>
+                        <h3>Estado de la Flota</h3>
                     </div>
-                    <div className="maintenance-list">
-                        {maintenanceVehicles.length > 0 ? (
-                            maintenanceVehicles.map(vehicle => (
-                                <div key={vehicle.id} className="maintenance-item">
-                                    <div className="maintenance-date">
-                                        <span className="m-month">{new Date().toLocaleString('es-ES', { month: 'short' }).toUpperCase()}</span>
-                                        <span className="m-day">{new Date().getDate()}</span>
-                                    </div>
-                                    <div className="maintenance-info">
-                                        <span className="m-vehicle">{vehicle.model}</span>
-                                        <span className="m-desc">Mantenimiento General</span>
-                                    </div>
-                                    <span className="m-urgency urgent">Urgente</span>
-                                </div>
-                            ))
+                    <div className="chart-body" style={{ height: '300px' }}>
+                        {[
+                            { name: 'Disponibles', value: stats.fleetAvailable, color: '#10b981' },
+                            { name: 'Rentados', value: stats.activeRentals, color: '#3b82f6' },
+                            { name: 'En Mantenimiento', value: stats.maintenanceDue, color: '#f59e0b' }
+                        ].filter(item => item.value > 0).length > 0 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={[
+                                            { name: 'Disponibles', value: stats.fleetAvailable, color: '#10b981' },
+                                            { name: 'Rentados', value: stats.activeRentals, color: '#3b82f6' },
+                                            { name: 'En Mantenimiento', value: stats.maintenanceDue, color: '#f59e0b' }
+                                        ].filter(item => item.value > 0)}
+                                        cx="50%"
+                                        cy="45%"
+                                        innerRadius={60}
+                                        outerRadius={80}
+                                        paddingAngle={5}
+                                        dataKey="value"
+                                        stroke="transparent"
+                                        label={renderFleetLabel}
+                                        labelLine={{ stroke: '#94a3b8', strokeWidth: 1 }}
+                                    >
+                                        {[
+                                            { name: 'Disponibles', value: stats.fleetAvailable, color: '#10b981' },
+                                            { name: 'Rentados', value: stats.activeRentals, color: '#3b82f6' },
+                                            { name: 'En Mantenimiento', value: stats.maintenanceDue, color: '#f59e0b' }
+                                        ].filter(item => item.value > 0).map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip
+                                        contentStyle={{ background: '#101620', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }}
+                                        itemStyle={{ color: '#fff' }}
+                                        formatter={(value) => [`${value} vehículos`, '']}
+                                    />
+                                    <Legend 
+                                        verticalAlign="bottom" 
+                                        height={40} 
+                                        iconType="circle" 
+                                        wrapperStyle={{ fontSize: '13px', paddingTop: '10px' }}
+                                    />
+                                </PieChart>
+                            </ResponsiveContainer>
                         ) : (
-                            <div className="center-text muted py-4">Sin mantenimientos próximos.</div>
+                            <div className="center-text muted py-4">No hay datos de flota.</div>
                         )}
                     </div>
-                    <Link to="/fleet" className="manage-schedule-btn">
-                        <Wrench size={16} />
-                        Gestionar Mantenimientos
-                    </Link>
                 </div>
             </div>
         </div>
