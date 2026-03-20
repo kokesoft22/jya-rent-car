@@ -99,6 +99,7 @@ const App = () => {
   };
 
   const handleLogout = async () => {
+    sessionStorage.removeItem('jya_rent_car_init');
     await supabase.auth.signOut();
   };
 
@@ -120,6 +121,7 @@ const App = () => {
 
   return (
     <Router>
+      <SessionInitializer />
       <div className="app-container">
         {/* Overlay for mobile */}
         {sidebarOpen && <div className="sidebar-overlay" onClick={closeSidebar}></div>}
@@ -218,6 +220,26 @@ const HeaderActions = ({ notificationsCount, userEmail, onLogout }) => {
       </div>
     </div>
   );
+};
+
+const SessionInitializer = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  useEffect(() => {
+    // Verificar si ya se inicializó en esta pestaña del navegador
+    const hasInitialized = sessionStorage.getItem('jya_rent_car_init');
+    
+    if (!hasInitialized) {
+      // Marcar como inicializado y redirigir al Dashboard si no estamos en él
+      sessionStorage.setItem('jya_rent_car_init', 'true');
+      if (location.pathname !== '/') {
+        navigate('/', { replace: true });
+      }
+    }
+  }, [navigate, location]);
+  
+  return null;
 };
 
 const SidebarNav = ({ onAction }) => {
