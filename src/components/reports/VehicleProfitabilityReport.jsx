@@ -37,10 +37,10 @@ const VehicleProfitabilityReport = ({ onBack }) => {
                         <thead>
                             <tr>
                                 <th>Vehículo</th>
-                                <th className="text-right">Ingresos (Rentas)</th>
-                                <th className="text-right">Gastos (Mantenimiento)</th>
-                                <th className="text-right">Ganancia Neta</th>
-                                <th className="text-right">Margen</th>
+                                <th className="text-center">Ingresos (Rentas)</th>
+                                <th className="text-center">Gastos (Mantenimiento)</th>
+                                <th className="text-center">Ganancia Neta</th>
+                                <th className="text-center">Margen</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -62,14 +62,14 @@ const VehicleProfitabilityReport = ({ onBack }) => {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="text-right font-bold text-success">
+                                            <td className="text-center font-bold text-success">
                                                 ${v.income.toLocaleString()}
                                             </td>
-                                            <td className="text-right font-bold text-danger">
+                                            <td className="text-center font-bold text-danger">
                                                 -${v.expenses.toLocaleString()}
                                             </td>
-                                            <td className="text-right">
-                                                <div className="flex flex-col items-end">
+                                            <td className="text-center">
+                                                <div className="flex flex-col items-center">
                                                     <span className={`font-bold ${isProfitable ? 'text-success' : 'text-danger'}`}>
                                                         ${v.netProfit.toLocaleString()}
                                                     </span>
@@ -79,7 +79,7 @@ const VehicleProfitabilityReport = ({ onBack }) => {
                                                     </span>
                                                 </div>
                                             </td>
-                                            <td className="text-right">
+                                            <td className="text-center">
                                                 <span className={`badge ${parseFloat(margin) > 0 ? 'badge-active' : 'badge-subtle'}`}>
                                                     {margin}%
                                                 </span>
