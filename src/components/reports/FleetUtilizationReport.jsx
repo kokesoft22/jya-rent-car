@@ -4,13 +4,32 @@ import { useFleetUtilization } from '../../hooks/useReportsData';
 import '../Reports.css';
 
 const FleetUtilizationReport = ({ onBack }) => {
-    const { data, isLoading, error } = useFleetUtilization();
+    const [selectedDate, setSelectedDate] = React.useState(new Date());
+    const { data, isLoading, error } = useFleetUtilization(selectedDate);
+
+    // Generar últimos 12 meses para el selector
+    const monthOptions = React.useMemo(() => {
+        const options = [];
+        const now = new Date();
+        for (let i = 0; i < 12; i++) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            options.push({
+                label: d.toLocaleString('es-ES', { month: 'long', year: 'numeric' }),
+                value: d.toISOString()
+            });
+        }
+        return options;
+    }, []);
+
+    const handleMonthChange = (e) => {
+        setSelectedDate(new Date(e.target.value));
+    };
 
     if (isLoading) {
         return (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
                 <Loader className="animate-spin text-primary" size={40} />
-                <p className="text-muted">Analizando ocupación de la flota...</p>
+                <p className="text-muted">Analizando ocupación de vehículos...</p>
             </div>
         );
     }
@@ -27,18 +46,34 @@ const FleetUtilizationReport = ({ onBack }) => {
     
     const globalRate = totalDaysPotential > 0 ? Math.round((totalRentedDays / totalDaysPotential) * 100) : 0;
 
-    const today = new Date();
-    const currentMonth = today.toLocaleString('es-ES', { month: 'long', year: 'numeric' });
+    const displayMonth = selectedDate.toLocaleString('es-ES', { month: 'long', year: 'numeric' });
 
     return (
         <div className="report-detail-view animate-fade-in">
-            <div className="flex items-center gap-4 mb-8">
-                <button className="btn-icon-subtle" onClick={onBack} title="Volver al Centro de Reportes">
-                    <ArrowLeft size={22} />
-                </button>
-                <div>
-                    <h2 className="text-2xl font-bold text-white">Tasa de Ocupación de Vehículos</h2>
-                    <p className="text-muted">Análisis de uso vs disponibilidad en el mes de {currentMonth}.</p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <div className="flex items-center gap-4">
+                    <button className="btn-icon-subtle" onClick={onBack} title="Volver al Centro de Reportes">
+                        <ArrowLeft size={22} />
+                    </button>
+                    <div>
+                        <h2 className="text-2xl font-bold text-white uppercase tracking-tight">Tasa de Ocupación de Vehículos</h2>
+                        <p className="text-muted">Análisis de uso vs disponibilidad - {displayMonth}.</p>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-3 bg-slate-800/50 p-2 rounded-xl border border-white/5">
+                    <span className="text-xs font-semibold text-muted uppercase ml-2">Consultar Mes:</span>
+                    <select 
+                        className="bg-slate-900 text-white border-none rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-primary outline-none cursor-pointer"
+                        value={selectedDate.toISOString()}
+                        onChange={handleMonthChange}
+                    >
+                        {monthOptions.map((opt, idx) => (
+                            <option key={idx} value={opt.value}>
+                                {opt.label.charAt(0).toUpperCase() + opt.label.slice(1)}
+                            </option>
+                        ))}
+                    </select>
                 </div>
             </div>
 

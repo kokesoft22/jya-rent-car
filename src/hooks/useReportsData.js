@@ -83,14 +83,13 @@ export const useAccountsReceivable = () => {
     });
 };
 
-// 3. Tasa de Ocupación de Flota (Mes Actual)
-export const useFleetUtilization = () => {
+// 3. Tasa de Ocupación de Vehículos (Parametrizado por Mes)
+export const useFleetUtilization = (date = new Date()) => {
     return useQuery({
-        queryKey: ['report-fleet-utilization'],
+        queryKey: ['report-fleet-utilization', date.getFullYear(), date.getMonth()],
         queryFn: async () => {
-            const now = new Date();
-            const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-            const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+            const lastDayOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
             const daysInMonth = lastDayOfMonth.getDate();
             
             const { data: vehicles, error: vError } = await supabase.from('vehicles').select('id, model');
@@ -100,7 +99,6 @@ export const useFleetUtilization = () => {
                 .from('rentals')
                 .select('vehicle_id, start_date, end_date')
                 .neq('status', 'cancelled')
-                // Only rentals intersecting this month
                 .lte('start_date', lastDayOfMonth.toISOString())
                 .gte('end_date', firstDayOfMonth.toISOString());
                 
@@ -111,13 +109,20 @@ export const useFleetUtilization = () => {
                 let rentedDays = 0;
                 
                 vRentals.forEach(r => {
-                    const start = new Date(Math.max(new Date(r.start_date), firstDayOfMonth));
-                    const end = new Date(Math.min(new Date(r.end_date), lastDayOfMonth));
-                    const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1; // inclusive
-                    rentedDays += days;
+                    const rStart = new Date(r.start_date);
+                    const rEnd = new Date(r.end_date);
+                    
+                    const start = new Date(Math.max(rStart, firstDayOfMonth));
+                    const end = new Date(Math.min(rEnd, lastDayOfMonth));
+                    
+                    // Asegurar que no contemos días negativos y sumar 1 para inclusividad
+                    const diffTime = end.getTime() - start.getTime();
+                    if (diffTime >= 0) {
+                        const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                        rentedDays += days;
+                    }
                 });
                 
-                // Cap at daysInMonth in case of overlapping incorrect data
                 rentedDays = Math.min(rentedDays, daysInMonth);
                 const rate = Math.round((rentedDays / daysInMonth) * 100);
                 
