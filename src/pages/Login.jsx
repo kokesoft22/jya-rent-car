@@ -49,7 +49,6 @@ const Login = () => {
           <div className="login-logo-container">
              <img src={logo} alt="J&A Rent Car Logo" className="login-logo-img" />
           </div>
-          <p className="text-muted text-sm mt-4">Accede a tu panel de administración</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="login-form mt-8">

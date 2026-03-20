@@ -45,6 +45,24 @@ const SidebarItem = ({ icon: Icon, label, to, active, onAction }) => (
   </Link>
 );
 
+const SessionInitializer = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  useEffect(() => {
+    const hasInitialized = sessionStorage.getItem('jya_rent_car_init');
+    
+    if (!hasInitialized) {
+      sessionStorage.setItem('jya_rent_car_init', 'true');
+      if (location.pathname !== '/') {
+        navigate('/', { replace: true });
+      }
+    }
+  }, [navigate, location]);
+  
+  return null;
+};
+
 const App = () => {
   const [notifications, setNotifications] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -220,26 +238,6 @@ const HeaderActions = ({ notificationsCount, userEmail, onLogout }) => {
       </div>
     </div>
   );
-};
-
-const SessionInitializer = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  
-  useEffect(() => {
-    // Verificar si ya se inicializó en esta pestaña del navegador
-    const hasInitialized = sessionStorage.getItem('jya_rent_car_init');
-    
-    if (!hasInitialized) {
-      // Marcar como inicializado y redirigir al Dashboard si no estamos en él
-      sessionStorage.setItem('jya_rent_car_init', 'true');
-      if (location.pathname !== '/') {
-        navigate('/', { replace: true });
-      }
-    }
-  }, [navigate, location]);
-  
-  return null;
 };
 
 const SidebarNav = ({ onAction }) => {
