@@ -64,7 +64,7 @@ const FleetUtilizationReport = ({ onBack }) => {
                 <div className="flex items-center gap-3 bg-slate-800/50 p-2 rounded-xl border border-white/5">
                     <span className="text-xs font-semibold text-muted uppercase ml-2">Consultar Mes:</span>
                     <select 
-                        className="bg-slate-900 text-white border-none rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-primary outline-none cursor-pointer"
+                        className="custom-select bg-slate-900 text-white border-none rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-primary outline-none cursor-pointer"
                         value={selectedDate.toISOString()}
                         onChange={handleMonthChange}
                     >

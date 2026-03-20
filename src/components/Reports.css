@@ -312,3 +312,18 @@
 .text-\[10px\] { font-size: 10px; line-height: 1; }
 .text-danger { color: var(--danger); }
 .text-success { color: var(--success); }
+
+/* Custom Select Styling */
+.custom-select {
+    background-color: #0f172a !important;
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+.custom-select option {
+    background-color: #1e293b;
+    color: white;
+}
