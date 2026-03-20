@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '../lib/supabase';
 import { customerService } from '../services/customerService';
 import { toast } from 'sonner';
 
@@ -48,5 +49,28 @@ export const useDeleteCustomer = () => {
     onError: (error) => {
       toast.error(`Error al eliminar cliente: ${error.message}`);
     },
+  });
+};
+
+export const useCustomerRentals = (customerId) => {
+  return useQuery({
+    queryKey: ['customerRentals', customerId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('rentals')
+        .select(`
+          *,
+          vehicles (
+            model,
+            plates
+          )
+        `)
+        .eq('customer_id', customerId)
+        .order('start_date', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!customerId,
   });
 };

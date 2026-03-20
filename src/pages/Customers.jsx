@@ -4,6 +4,7 @@ import { useCustomers, useDeleteCustomer } from '../hooks/useCustomers';
 import CustomerRow from '../components/customers/CustomerRow';
 import AddCustomerModal from '../components/customers/AddCustomerModal';
 import EditCustomerModal from '../components/customers/EditCustomerModal';
+import CustomerDetailsModal from '../components/customers/CustomerDetailsModal';
 
 import '../components/Customers.css';
 
@@ -17,6 +18,10 @@ const Customers = () => {
     // State for editing
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [customerToEdit, setCustomerToEdit] = useState(null);
+
+    // State for viewing details
+    const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+    const [customerToView, setCustomerToView] = useState(null);
 
     const filteredCustomers = customers.filter(c =>
         c.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -34,6 +39,11 @@ const Customers = () => {
     const handleEditCustomer = (customer) => {
         setCustomerToEdit(customer);
         setIsEditModalOpen(true);
+    };
+
+    const handleViewDetails = (customer) => {
+        setCustomerToView(customer);
+        setIsDetailsModalOpen(true);
     };
 
     return (
@@ -94,6 +104,7 @@ const Customers = () => {
                                         customer={customer}
                                         onEdit={handleEditCustomer}
                                         onDelete={handleDeleteCustomer}
+                                        onViewDetails={handleViewDetails}
                                     />
                                 ))
                             ) : (
@@ -119,6 +130,15 @@ const Customers = () => {
                 }}
                 customer={customerToEdit}
                 onCustomerUpdated={() => refetch()}
+            />
+
+            <CustomerDetailsModal
+                isOpen={isDetailsModalOpen}
+                onClose={() => {
+                    setIsDetailsModalOpen(false);
+                    setCustomerToView(null);
+                }}
+                customer={customerToView}
             />
         </div>
     );

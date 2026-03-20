@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { CreditCard, Phone, Mail, MoreVertical, Edit2, Trash2 } from 'lucide-react';
+import { CreditCard, Phone, Mail, MoreVertical, Edit2, Trash2, History } from 'lucide-react';
 
-const CustomerRow = ({ customer, onEdit, onDelete }) => {
+const CustomerRow = ({ customer, onEdit, onDelete, onViewDetails }) => {
     const [showMenu, setShowMenu] = useState(false);
 
     return (
@@ -43,6 +43,12 @@ const CustomerRow = ({ customer, onEdit, onDelete }) => {
                         <>
                             <div className="menu-backdrop" onClick={() => setShowMenu(false)}></div>
                             <div className="actions-dropdown">
+                                <button className="dropdown-item" onClick={() => {
+                                    setShowMenu(false);
+                                    if(onViewDetails) onViewDetails(customer);
+                                }}>
+                                    <History size={14} /> Historial de Rentas
+                                </button>
                                 <button className="dropdown-item" onClick={() => {
                                     setShowMenu(false);
                                     onEdit(customer);
