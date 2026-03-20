@@ -29,7 +29,27 @@ const Rentals = () => {
             (r.customers?.full_name?.toLowerCase() || '').includes(searchTerm.toLowerCase());
 
         if (statusFilter === 'all') return searchMatch;
+        
+        const today = new Date().toISOString().split('T')[0];
+        const startDate = r.start_date ? r.start_date.split('T')[0] : '';
+        
+        if (statusFilter === 'active') {
+            return searchMatch && r.status === 'active' && startDate <= today;
+        }
+        if (statusFilter === 'reserved') {
+            return searchMatch && r.status === 'active' && startDate > today;
+        }
         return searchMatch && r.status === statusFilter;
+    }).sort((a, b) => {
+        const today = new Date().toISOString().split('T')[0];
+        const aIsActive = a.status === 'active' && a.start_date.split('T')[0] <= today;
+        const bIsActive = b.status === 'active' && b.start_date.split('T')[0] <= today;
+        const aIsReserved = a.status === 'active' && a.start_date.split('T')[0] > today;
+        const bIsReserved = b.status === 'active' && b.start_date.split('T')[0] > today;
+
+        // Active first, then reserved, then completed
+        const getOrder = (isActive, isReserved) => isActive ? 0 : isReserved ? 1 : 2;
+        return getOrder(aIsActive, aIsReserved) - getOrder(bIsActive, bIsReserved);
     });
 
     const handleCompleteRental = async (id) => {
@@ -92,6 +112,10 @@ const Rentals = () => {
                             className={`filter-btn ${statusFilter === 'active' ? 'active' : ''}`}
                             onClick={() => setStatusFilter('active')}
                         >Activas</button>
+                        <button
+                            className={`filter-btn ${statusFilter === 'reserved' ? 'active' : ''}`}
+                            onClick={() => setStatusFilter('reserved')}
+                        >Reservadas</button>
                         <button
                             className={`filter-btn ${statusFilter === 'completed' ? 'active' : ''}`}
                             onClick={() => setStatusFilter('completed')}

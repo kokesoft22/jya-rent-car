@@ -16,7 +16,8 @@ import {
     YAxis,
     CartesianGrid,
     Tooltip,
-    ResponsiveContainer
+    ResponsiveContainer,
+    LabelList
 } from 'recharts';
 import { useDashboardStats } from '../hooks/useDashboardStats';
 import StatCard from '../components/dashboard/StatCard';
@@ -49,10 +50,7 @@ const Dashboard = () => {
                     <h1 className="welcome-text">¡Bienvenido de nuevo, J&A!</h1>
                     <p className="welcome-subtext">Aquí tienes un resumen de lo que está pasando en tu Rent Car hoy.</p>
                 </div>
-                <Link to="/new-rental" className="btn-primary">
-                    <PlusCircle size={18} />
-                    <span>Nueva Renta</span>
-                </Link>
+
             </div>
 
             <div className="stats-grid">
@@ -73,7 +71,7 @@ const Dashboard = () => {
                     <div className="chart-body" style={{ height: '300px' }}>
                         {chartData.some(d => d.income > 0) ? (
                             <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={chartData}>
+                                <AreaChart data={chartData} margin={{ top: 30, right: 35, left: 0, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
                                             <stop offset="5%" stopColor="#06bcf9" stopOpacity={0.3} />
@@ -88,7 +86,15 @@ const Dashboard = () => {
                                         itemStyle={{ color: '#fff' }}
                                         formatter={(value) => [`$${value.toLocaleString()}`, 'Ingresos']}
                                     />
-                                    <Area type="monotone" dataKey="income" stroke="#06bcf9" fillOpacity={1} fill="url(#colorIncome)" strokeWidth={3} />
+                                    <Area type="monotone" dataKey="income" stroke="#06bcf9" fillOpacity={1} fill="url(#colorIncome)" strokeWidth={3}>
+                                        <LabelList 
+                                            dataKey="income" 
+                                            position="top" 
+                                            offset={10}
+                                            formatter={(value) => `$${value.toLocaleString()}`} 
+                                            style={{ fill: '#cbd5e1', fontSize: '11px', fontWeight: 600 }} 
+                                        />
+                                    </Area>
                                 </AreaChart>
                             </ResponsiveContainer>
                         ) : (

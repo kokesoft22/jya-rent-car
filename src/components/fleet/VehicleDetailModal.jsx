@@ -3,12 +3,18 @@ import { X, Clock, AlertTriangle, Calendar, User, Edit2, Trash2, Plus } from 'lu
 import { maintenanceService } from '../../services/maintenanceService';
 import { rentalService } from '../../services/rentalService';
 import { customerService } from '../../services/customerService';
+import { useVehicleMaintenanceLogs, useAddMaintenanceLog, useUpdateMaintenanceLog, useDeleteMaintenanceLog } from '../../hooks/useMaintenance';
 import { toast } from 'sonner';
 import { Calendar as ReactCalendar } from 'react-calendar';
+import { formatDateSafe } from '../../utils/dateUtils';
 import 'react-calendar/dist/Calendar.css';
 
 export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
-    const [maintenanceLogs, setMaintenanceLogs] = useState([]);
+    const { data: maintenanceLogs = [], isLoading: isLoadingLogs } = useVehicleMaintenanceLogs(vehicle?.id);
+    const addLogMutation = useAddMaintenanceLog();
+    const updateLogMutation = useUpdateMaintenanceLog();
+    const deleteLogMutation = useDeleteMaintenanceLog();
+
     const [scheduledRentals, setScheduledRentals] = useState([]);
     const [activeTab, setActiveTab] = useState('maintenance');
     const [showForm, setShowForm] = useState(false);
@@ -26,35 +32,27 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
     });
 
     const [newLog, setNewLog] = useState({
-        description: '', cost: '', mileage_at_service: '', date: new Date().toISOString().split('T')[0]
+        description: '', cost: '', mileage_at_service: '', date: new Date().toISOString().split('T')[0],
+        category: 'maintenance'
     });
 
-    const formatDateSafe = (dateStr) => {
-        if (!dateStr) return '';
-        const [year, month, day] = dateStr.split('T')[0].split('-');
-        if (year && month && day) {
-            return `${day}/${month}/${year}`;
-        }
-        return new Date(dateStr).toLocaleDateString();
-    };
 
     useEffect(() => {
         if (isOpen && vehicle) {
-            loadData();
+            setEditingRentalId(null);
+            setEditingLogId(null);
+            setShowForm(false);
+            loadRentals();
         }
     }, [isOpen, vehicle]);
 
-    const loadData = async () => {
+    const loadRentals = async () => {
         try {
             setLoadingData(true);
-            const [logs, rentals] = await Promise.all([
-                maintenanceService.getByVehicle(vehicle.id),
-                rentalService.getByVehicle(vehicle.id)
-            ]);
-            setMaintenanceLogs(logs);
+            const rentals = await rentalService.getByVehicle(vehicle.id);
             setScheduledRentals(rentals);
         } catch (err) {
-            console.error('Error loading vehicle details:', err);
+            console.error('Error loading vehicle rentals:', err);
         } finally {
             setLoadingData(false);
         }
@@ -64,26 +62,23 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
         e.preventDefault();
         try {
             const logData = {
-                ...newLog,
                 vehicle_id: vehicle.id,
+                ...newLog,
                 cost: parseFloat(newLog.cost) || 0,
-                mileage_at_service: newLog.mileage_at_service ? parseInt(newLog.mileage_at_service) : null
+                mileage_at_service: newLog.mileage_at_service ? parseFloat(newLog.mileage_at_service) : null
             };
 
             if (editingLogId) {
-                await maintenanceService.update(editingLogId, logData);
-                toast.success('Mantenimiento actualizado');
+                await updateLogMutation.mutateAsync({ id: editingLogId, data: logData });
             } else {
-                await maintenanceService.create(logData);
-                toast.success('Mantenimiento registrado');
+                await addLogMutation.mutateAsync(logData);
             }
 
-            setNewLog({ description: '', cost: '', mileage_at_service: '', date: new Date().toISOString().split('T')[0] });
+            setNewLog({ description: '', cost: '', mileage_at_service: '', date: new Date().toISOString().split('T')[0], category: 'maintenance' });
             setShowForm(false);
             setEditingLogId(null);
-            loadData();
         } catch (err) {
-            toast.error('Error al guardar mantenimiento: ' + err.message);
+            // Error is handled by the hook
         }
     };
 
@@ -92,7 +87,8 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
             description: log.description,
             cost: log.cost,
             mileage_at_service: log.mileage_at_service || '',
-            date: log.date
+            date: log.date,
+            category: log.category || 'maintenance'
         });
         setEditingLogId(log.id);
         setShowForm(true);
@@ -101,11 +97,9 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
     const handleDeleteLog = async (id) => {
         if (window.confirm('¿Estás seguro de que deseas eliminar este registro de mantenimiento?')) {
             try {
-                await maintenanceService.delete(id);
-                toast.success('Registro eliminado');
-                loadData();
+                await deleteLogMutation.mutateAsync(id);
             } catch (err) {
-                toast.error('Error al eliminar el registro: ' + err.message);
+                // Error handled by hook
             }
         }
     };
@@ -140,6 +134,8 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
             const diffDays = Math.ceil(Math.abs(eDate - s) / (1000 * 60 * 60 * 24)) || 1;
             const pricePerDay = rentalForm.price_per_day !== undefined ? parseFloat(rentalForm.price_per_day) || 0 : (vehicle.daily_rate || 0);
             const totalAmount = diffDays * pricePerDay;
+            const amountPaid = parseFloat(rentalForm.amount_paid) || 0;
+            const autoPaymentStatus = amountPaid <= 0 ? 'pending' : amountPaid >= totalAmount ? 'paid' : 'partial';
 
             if (editingRentalId) {
                 await rentalService.update(editingRentalId, {
@@ -147,16 +143,16 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
                     start_date: rentalForm.start_date,
                     end_date: rentalForm.end_date,
                     total_amount: totalAmount,
-                    payment_status: rentalForm.payment_status,
-                    amount_paid: parseFloat(rentalForm.amount_paid) || 0
+                    payment_status: autoPaymentStatus,
+                    amount_paid: amountPaid
                 });
                 toast.success('Renta actualizada exitosamente');
             } else {
                 await rentalService.create({
                     vehicle_id: vehicle.id, customer_id: customerId,
                     start_date: rentalForm.start_date, end_date: rentalForm.end_date,
-                    total_amount: totalAmount, payment_status: rentalForm.payment_status,
-                    amount_paid: parseFloat(rentalForm.amount_paid) || 0, status: 'active'
+                    total_amount: totalAmount, payment_status: autoPaymentStatus,
+                    amount_paid: amountPaid, status: 'active'
                 });
                 toast.success('Reserva creada exitosamente');
             }
@@ -167,7 +163,7 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
             });
             setEditingRentalId(null);
             setActiveTab('agenda');
-            loadData();
+            loadRentals();
         } catch (err) {
             console.error('Error creating rental:', err);
             toast.error('Error al crear la renta: ' + err.message);
@@ -195,7 +191,7 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
             try {
                 await rentalService.delete(id);
                 toast.success('Reserva eliminada');
-                loadData();
+                loadRentals();
             } catch (err) {
                 console.error('FULL DELETE ERROR:', err);
                 toast.error('Error al eliminar la reserva: ' + (err.message || 'Error desconocido'));
@@ -208,13 +204,13 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
         setRentalForm(updatedForm);
         
         if (updatedForm.start_date && updatedForm.end_date) {
-            checkConflictsForModal(vehicle.id, updatedForm.start_date, updatedForm.end_date);
+            checkConflictsForModal(vehicle.id, updatedForm.start_date, updatedForm.end_date, editingRentalId);
         }
     };
 
-    const checkConflictsForModal = async (vehicleId, start, end) => {
+    const checkConflictsForModal = async (vehicleId, start, end, excludeId = null) => {
         try {
-            const conflicts = await rentalService.checkAvailability(vehicleId, start, end);
+            const conflicts = await rentalService.checkAvailability(vehicleId, start, end, excludeId);
             setAvailabilityConflicts(conflicts);
         } catch (err) {
             console.error('Error checking conflicts:', err);
@@ -227,6 +223,8 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
         const d = String(date.getDate()).padStart(2, '0');
         const dStr = `${y}-${m}-${d}`;
         return scheduledRentals.some(rent => {
+            if (rent.status !== 'active') return false;
+            if (editingRentalId && rent.id === editingRentalId) return false;
             const start = rent.start_date.split('T')[0];
             const end = rent.end_date.split('T')[0];
             return dStr >= start && dStr <= end;
@@ -299,7 +297,7 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
                                     const end = toLocalDate(values[1]);
                                     setRentalForm(prev => ({...prev, start_date: start, end_date: end}));
                                     if (start && end) {
-                                        checkConflictsForModal(vehicle.id, start, end);
+                                        checkConflictsForModal(vehicle.id, start, end, editingRentalId);
                                     }
                                     setShowCalendar(false);
                                 }
@@ -327,27 +325,19 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
                         <input type="number" className="input-field" value={rentalForm.price_per_day !== undefined ? rentalForm.price_per_day : vehicle?.daily_rate || 0} onChange={(e) => setRentalForm({...rentalForm, price_per_day: e.target.value})} style={{ fontSize: '13px', padding: '10px' }} />
                     </div>
                     <div className="form-group" style={{ flex: 1 }}>
-                        <label style={{ fontSize: '11px', color: '#94a3b8' }}>Total a Pagar ($)</label>
-                        <input type="text" className="input-field" readOnly value={`$${totalAmount.toLocaleString()}`} style={{ fontSize: '13px', padding: '10px', background: 'rgba(255,255,255,0.02)', color: '#60a5fa', fontWeight: 700 }} />
+                        <label style={{ fontSize: '11px', color: '#94a3b8' }}>Pagado ($)</label>
+                        <input type="number" className="input-field" value={rentalForm.amount_paid} onChange={(e) => setRentalForm({...rentalForm, amount_paid: e.target.value})} style={{ fontSize: '13px', padding: '10px', color: '#10b981', fontWeight: 700 }} />
                     </div>
                 </div>
                 <div className="form-row" style={{ display: 'flex', gap: '10px' }}>
                     <div className="form-group" style={{ flex: 1 }}>
-                        <label style={{ fontSize: '11px', color: '#94a3b8' }}>Pagado ($)</label>
-                        <input type="number" className="input-field" value={rentalForm.amount_paid} onChange={(e) => setRentalForm({...rentalForm, amount_paid: e.target.value})} style={{ fontSize: '13px', padding: '10px' }} />
+                        <label style={{ fontSize: '11px', color: '#94a3b8' }}>Pendiente ($)</label>
+                        <input type="text" className="input-field" readOnly value={`$${pendingAmount.toLocaleString()}`} style={{ fontSize: '13px', padding: '10px', background: 'rgba(255,255,255,0.02)', color: '#ef4444', fontWeight: 700 }} />
                     </div>
                     <div className="form-group" style={{ flex: 1 }}>
-                        <label style={{ fontSize: '11px', color: '#94a3b8' }}>Pendiente ($)</label>
-                        <input type="text" className="input-field" readOnly value={`$${pendingAmount.toLocaleString()}`} style={{ fontSize: '13px', padding: '10px', background: 'rgba(255,255,255,0.02)', color: pendingAmount > 0 ? '#f59e0b' : '#10b981', fontWeight: 700 }} />
+                        <label style={{ fontSize: '11px', color: '#94a3b8' }}>Total a Pagar ($)</label>
+                        <input type="text" className="input-field" readOnly value={`$${totalAmount.toLocaleString()}`} style={{ fontSize: '13px', padding: '10px', background: 'rgba(255,255,255,0.02)', color: '#60a5fa', fontWeight: 700 }} />
                     </div>
-                </div>
-                <div className="form-group">
-                    <label style={{ fontSize: '11px', color: '#94a3b8' }}>Estado de Pago</label>
-                    <select className="input-field" value={rentalForm.payment_status} onChange={(e) => setRentalForm({...rentalForm, payment_status: e.target.value})} style={{ fontSize: '13px', padding: '10px' }}>
-                        <option value="pending">Pendiente</option>
-                        <option value="partial">Parcial</option>
-                        <option value="paid">Pagado</option>
-                    </select>
                 </div>
             </div>
 
@@ -405,7 +395,7 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
                             )}
                             {vehicle.last_maintenance && (
                                 <div style={{ padding: '8px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '1px' }}>Último Mantenimiento</div>
+                                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '1px' }}>Ultimo Cambio Aceite</div>
                                     <div style={{ fontSize: '14px', fontWeight: 700 }}>{formatDateSafe(vehicle.last_maintenance)}</div>
                                 </div>
                             )}
@@ -419,20 +409,9 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
                     </div>
 
                     <div className="maintenance-section-container">
-                        {vehicle.status === 'rented' && activeRental && (
-                            <div style={{ margin: '0 16px 20px 16px', padding: '16px', background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#f87171' }}>
-                                    <Clock size={16} />
-                                    <span style={{ fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Renta Actual</span>
-                                </div>
-                                <div style={{ fontSize: '14px', fontWeight: 600, color: '#fca5a5' }}>
-                                    {activeRental.customers?.full_name} ({formatDateSafe(activeRental.end_date)})
-                                </div>
-                            </div>
-                        )}
                         <div className="detail-tabs" style={{ display: 'flex', gap: '8px', marginBottom: '20px', borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '0 16px' }}>
-                            <button className={`tab-btn ${activeTab === 'maintenance' ? 'active' : ''}`} onClick={() => setActiveTab('maintenance')} style={{ padding:'12px', background:'none', border:'none', color:activeTab==='maintenance'?'#0ea5e9':'#94a3b8', borderBottom:activeTab==='maintenance'?'2px solid #0ea5e9':'none', cursor:'pointer' }}>Mantenimiento</button>
-                            <button className={`tab-btn ${activeTab === 'agenda' ? 'active' : ''}`} onClick={() => setActiveTab('agenda')} style={{ padding:'12px', background:'none', border:'none', color:activeTab==='agenda'?'#0ea5e9':'#94a3b8', borderBottom:activeTab==='agenda'?'2px solid #0ea5e9':'none', cursor:'pointer' }}>Agenda</button>
+                            <button className={`tab-btn ${activeTab === 'maintenance' ? 'active' : ''}`} onClick={() => { setActiveTab('maintenance'); setEditingRentalId(null); setEditingLogId(null); }} style={{ padding:'12px', background:'none', border:'none', color:activeTab==='maintenance'?'#0ea5e9':'#94a3b8', borderBottom:activeTab==='maintenance'?'2px solid #0ea5e9':'none', cursor:'pointer' }}>Mantenimiento</button>
+                            <button className={`tab-btn ${activeTab === 'agenda' ? 'active' : ''}`} onClick={() => { setActiveTab('agenda'); setEditingRentalId(null); setEditingLogId(null); }} style={{ padding:'12px', background:'none', border:'none', color:activeTab==='agenda'?'#0ea5e9':'#94a3b8', borderBottom:activeTab==='agenda'?'2px solid #0ea5e9':'none', cursor:'pointer' }}>Agenda</button>
                             <button 
                                 className={`tab-btn ${activeTab === 'new-rental' ? 'active' : ''}`} 
                                 onClick={() => {
@@ -458,9 +437,19 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
                                         <input type="text" className="input-field" placeholder="¿Qué se le hizo?" required value={newLog.description} onChange={(e) => setNewLog({ ...newLog, description: e.target.value })} style={{ fontSize: '13px', padding: '10px' }} />
                                         <div style={{ display: 'flex', gap: '10px' }}>
                                             <input type="number" className="input-field" placeholder="Costo $" value={newLog.cost} onChange={(e) => setNewLog({ ...newLog, cost: e.target.value })} style={{ fontSize: '13px', padding: '10px' }} />
-                                            <input type="number" className="input-field" placeholder="Km actual" value={newLog.mileage_at_service} onChange={(e) => setNewLog({ ...newLog, mileage_at_service: e.target.value })} style={{ fontSize: '13px', padding: '10px' }} />
+                                            <select className="input-field" value={newLog.category} onChange={(e) => setNewLog({ ...newLog, category: e.target.value })} style={{ fontSize: '13px', padding: '10px' }}>
+                                                <option value="maintenance">Mantenimiento</option>
+                                                <option value="insurance">Seguros</option>
+                                                <option value="fuel">Combustibles</option>
+                                                <option value="cleaning">Limpieza</option>
+                                                <option value="taxes">Impuestos</option>
+                                                <option value="other">Otros</option>
+                                            </select>
                                         </div>
-                                        <input type="date" className="input-field" required value={newLog.date} onChange={(e) => setNewLog({ ...newLog, date: e.target.value })} style={{ fontSize: '13px', padding: '10px' }} />
+                                        <div style={{ display: 'flex', gap: '10px' }}>
+                                            <input type="number" className="input-field" placeholder="Km actual" value={newLog.mileage_at_service} onChange={(e) => setNewLog({ ...newLog, mileage_at_service: e.target.value })} style={{ fontSize: '13px', padding: '10px' }} />
+                                            <input type="date" className="input-field" required value={newLog.date} onChange={(e) => setNewLog({ ...newLog, date: e.target.value })} style={{ fontSize: '13px', padding: '10px' }} />
+                                        </div>
                                         <button type="submit" className="btn-primary-small" style={{ width: '100%', justifyContent: 'center' }}>{editingLogId ? 'Actualizar' : 'Guardar'}</button>
                                     </form>
                                 )}
@@ -469,7 +458,9 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
                                         <div key={log.id} className="maintenance-log-item" style={{ position: 'relative' }}>
                                             <div className="log-info" style={{ flex: 1 }}>
                                                 <span className="log-date">{formatDateSafe(log.date)}</span>
-                                                <span className="log-desc">{log.description}</span>
+                                                <span className="log-desc">
+                                                    {log.description} {log.mileage_at_service ? `- ${Number(log.mileage_at_service).toLocaleString()} km` : ''}
+                                                </span>
                                             </div>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                                 <span className="log-cost" style={{ fontSize: '14px', fontWeight: 600, color: '#10b981' }}>${log.cost}</span>
@@ -482,7 +473,7 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
                             </>
                         ) : activeTab === 'agenda' ? (
                             <div className="agenda-list" style={{ padding: '0 16px' }}>
-                                {scheduledRentals.map(rent => {
+                                {scheduledRentals.filter(r => r.status === 'active').map(rent => {
                                     const today = new Date().toISOString().split('T')[0];
                                     const startDate = rent.start_date.split('T')[0];
                                     const endDate = rent.end_date.split('T')[0];

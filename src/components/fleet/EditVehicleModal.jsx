@@ -148,7 +148,7 @@ export const EditVehicleModal = ({ vehicle, isOpen, onClose, onSaved }) => {
                             {errors.insurance_expiry && <span className="error-text"><AlertCircle size={12}/> {errors.insurance_expiry.message}</span>}
                         </div>
                         <div className="form-group">
-                            <label>Último Mantenimiento</label>
+                            <label>Ultimo Cambio Aceite</label>
                             <input type="date" className={`input-field ${errors.last_maintenance ? 'error' : ''}`} {...register('last_maintenance')} />
                             {errors.last_maintenance && <span className="error-text"><AlertCircle size={12}/> {errors.last_maintenance.message}</span>}
                         </div>

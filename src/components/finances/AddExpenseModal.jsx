@@ -73,7 +73,7 @@ const AddExpenseModal = ({ isOpen, onClose, vehicles }) => {
                             <select className="input-field" {...register('category')}>
                                 <option value="maintenance">Mantenimiento</option>
                                 <option value="insurance">Seguros</option>
-                                <option value="fuel">Combustible</option>
+                                <option value="fuel">Combustibles</option>
                                 <option value="cleaning">Limpieza</option>
                                 <option value="taxes">Impuestos</option>
                                 <option value="other">Otros</option>

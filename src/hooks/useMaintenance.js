@@ -16,6 +16,9 @@ export const useAddMaintenanceLog = () => {
     mutationFn: maintenanceService.create,
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['maintenance', 'vehicle', variables.vehicle_id] });
+      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+      queryClient.invalidateQueries({ queryKey: ['finances'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       toast.success('Registro de mantenimiento agregado');
     },
     onError: (error) => {
@@ -30,6 +33,9 @@ export const useUpdateMaintenanceLog = () => {
     mutationFn: ({ id, data }) => maintenanceService.update(id, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['maintenance'] });
+      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+      queryClient.invalidateQueries({ queryKey: ['finances'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       toast.success('Registro de mantenimiento actualizado');
     },
     onError: (error) => {
@@ -44,6 +50,9 @@ export const useDeleteMaintenanceLog = () => {
     mutationFn: maintenanceService.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['maintenance'] });
+      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+      queryClient.invalidateQueries({ queryKey: ['finances'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       toast.success('Registro eliminado');
     },
     onError: (error) => {

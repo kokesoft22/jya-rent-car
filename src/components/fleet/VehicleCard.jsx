@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Car, Calendar, AlertTriangle, MoreVertical, Edit2, Trash2, Eye, Clock } from 'lucide-react';
 import { rentalService } from '../../services/rentalService';
+import { formatDateSafe } from '../../utils/dateUtils';
 
 export const VehicleCard = ({ vehicle, onEdit, onDelete, onView }) => {
     const [currentStatus, setCurrentStatus] = useState(vehicle.status);
@@ -78,7 +79,7 @@ export const VehicleCard = ({ vehicle, onEdit, onDelete, onView }) => {
                             </span>
                             {vehicle.last_maintenance && (
                                 <span className="vehicle-last-maintenance">
-                                    <Calendar size={12} /> Mant.: {new Date(vehicle.last_maintenance).toLocaleDateString()}
+                                    <Calendar size={12} /> Camb. Aceite: {formatDateSafe(vehicle.last_maintenance)}
                                 </span>
                             )}
                             {vehicle.insurance_expiry && (() => {
@@ -87,7 +88,7 @@ export const VehicleCard = ({ vehicle, onEdit, onDelete, onView }) => {
                                 const isExpired = daysLeft <= 0;
                                 return (
                                     <span className={`vehicle-insurance ${isExpired ? 'expired' : isExpiring ? 'expiring' : ''}`}>
-                                        <AlertTriangle size={12} /> Seguro: {isExpired ? '¡Vencido!' : isExpiring ? `¡Vence en ${daysLeft} días!` : new Date(vehicle.insurance_expiry).toLocaleDateString()}
+                                        <AlertTriangle size={12} /> Seguro: {isExpired ? '¡Vencido!' : isExpiring ? `¡Vence en ${daysLeft} días!` : formatDateSafe(vehicle.insurance_expiry)}
                                     </span>
                                 );
                             })()}

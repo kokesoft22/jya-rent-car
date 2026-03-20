@@ -44,6 +44,7 @@ export const useDeleteExpense = () => {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['finances'] });
             queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+            queryClient.invalidateQueries({ queryKey: ['vehicles'] });
             toast.success('Gasto eliminado correctamente');
         },
         onError: (error) => {

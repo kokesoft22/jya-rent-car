@@ -353,6 +353,29 @@
   transform: translateY(-1px);
 }
 
+/* Button Secondary */
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-secondary);
+  padding: 8px 16px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  transition: all 0.2s ease;
+  border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
 /* Modal Styles */
 .modal-overlay {
   position: fixed;

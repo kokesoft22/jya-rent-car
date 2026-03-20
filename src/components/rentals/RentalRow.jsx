@@ -51,8 +51,14 @@ const RentalRow = ({ rental, onComplete, onDelete, onPayment, onEdit }) => {
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const start = new Date(rental.start_date);
-    const end = new Date(rental.end_date);
+    const parseDateFixed = (dateStr) => {
+        if (!dateStr) return new Date();
+        const [year, month, day] = dateStr.split('T')[0].split('-');
+        return new Date(year, month - 1, day);
+    };
+
+    const start = parseDateFixed(rental.start_date);
+    const end = parseDateFixed(rental.end_date);
 
     const totalDays = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)));
     let daysElapsed = 0;
@@ -67,6 +73,9 @@ const RentalRow = ({ rental, onComplete, onDelete, onPayment, onEdit }) => {
     const balance = Math.max(0, totalAmount - amountPaid);
 
     const getStatusBadge = (status) => {
+        if (status === 'active' && start > today) {
+            return <span className="status-badge reserved">Reservada</span>;
+        }
         switch (status) {
             case 'active': return <span className="status-badge active">Activa</span>;
             case 'completed': return <span className="status-badge completed">Completada</span>;

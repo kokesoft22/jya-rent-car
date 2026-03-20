@@ -1,55 +1,61 @@
 import React, { useState } from 'react';
 import { FileText, Car, ArrowRight, ShieldCheck, PieChart, BarChart3, TrendingUp } from 'lucide-react';
 import VehicleProfitabilityReport from '../components/reports/VehicleProfitabilityReport';
-
+import CollectionEfficiencyReport from '../components/reports/CollectionEfficiencyReport';
+import AccountsReceivableReport from '../components/reports/AccountsReceivableReport';
+import FleetUtilizationReport from '../components/reports/FleetUtilizationReport';
+import FutureRevenueReport from '../components/reports/FutureRevenueReport';
 const Reports = () => {
     const [selectedReport, setSelectedReport] = useState(null);
 
     const availableReports = [
+        {
+            id: 'collection_efficiency',
+            title: 'Facturado vs. Cobrado',
+            description: 'Mide la efectividad de cobro comparando contratos cerrados frente al flujo de caja real.',
+            icon: <PieChart size={24} />,
+            color: '#10b981',
+            badge: 'Finanzas'
+        },
+        {
+            id: 'accounts_receivable',
+            title: 'Cuentas por Cobrar',
+            description: 'Listado de clientes con balances pendientes. Vital para seguimiento y recuperación de efectivo.',
+            icon: <FileText size={24} />,
+            color: '#ef4444',
+            badge: 'Cobranza'
+        },
         {
             id: 'profitability',
             title: 'Rentabilidad por Vehículo',
             description: 'Conoce qué vehículos generan más ganancias netas descontando sus gastos de mantenimiento.',
             icon: <TrendingUp size={24} />,
             color: '#06bcf9',
-            badge: 'Financiero'
+            badge: 'Análisis'
         },
         {
-            id: 'pending_contracts',
-            title: 'Contratos y Documentación',
-            description: 'Historial y generación de contratos PDF. Gestión de firmas digitales y archivos.',
-            icon: <FileText size={24} />,
+            id: 'fleet_utilization',
+            title: 'Tasa de Ocupación',
+            description: 'Mide cuántos días del mes han estado rentados tus vehículos frente a los días que han estado libres.',
+            icon: <BarChart3 size={24} />,
             color: '#8b5cf6',
-            comingSoon: true,
-            badge: 'Legal'
-        },
-        {
-            id: 'licenses',
-            title: 'Vencimiento de Licencias',
-            description: 'Alertas tempranas de clientes con licencias de conducir próximas a vencer.',
-            icon: <ShieldCheck size={24} />,
-            color: '#f59e0b',
-            comingSoon: true,
             badge: 'Operativo'
         },
         {
-            id: 'usage',
-            title: 'Estadísticas de Uso',
-            description: 'Días de renta promedio, clientes recurrentes y picos de demanda estacional.',
-            icon: <BarChart3 size={24} />,
-            color: '#10b981',
-            comingSoon: true,
-            badge: 'Análisis'
+            id: 'future_revenue',
+            title: 'Proyección de Ingresos',
+            description: 'Visualiza el dinero asegurado gracias a las reservaciones y rentas que se completarán a futuro.',
+            icon: <ShieldCheck size={24} />,
+            color: '#f59e0b',
+            badge: 'Proyección'
         }
     ];
 
-    if (selectedReport === 'profitability') {
-        return (
-            <div className="page-content reports-page">
-                <VehicleProfitabilityReport onBack={() => setSelectedReport(null)} />
-            </div>
-        );
-    }
+    if (selectedReport === 'profitability') return <div className="page-content reports-page"><VehicleProfitabilityReport onBack={() => setSelectedReport(null)} /></div>;
+    if (selectedReport === 'collection_efficiency') return <div className="page-content reports-page"><CollectionEfficiencyReport onBack={() => setSelectedReport(null)} /></div>;
+    if (selectedReport === 'accounts_receivable') return <div className="page-content reports-page"><AccountsReceivableReport onBack={() => setSelectedReport(null)} /></div>;
+    if (selectedReport === 'fleet_utilization') return <div className="page-content reports-page"><FleetUtilizationReport onBack={() => setSelectedReport(null)} /></div>;
+    if (selectedReport === 'future_revenue') return <div className="page-content reports-page"><FutureRevenueReport onBack={() => setSelectedReport(null)} /></div>;
 
     return (
         <div className="page-content reports-page animate-fade-in">

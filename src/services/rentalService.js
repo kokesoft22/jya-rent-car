@@ -4,7 +4,7 @@ export const rentalService = {
     async getAll() {
         const { data, error } = await supabase
             .from('rentals')
-            .select('*, vehicles(model, image_url), customers(full_name)')
+            .select('*, vehicles(model, image_url), customers(full_name, id_number, phone)')
             .order('status', { ascending: true })
             .order('created_at', { ascending: false });
 
@@ -52,7 +52,7 @@ export const rentalService = {
         // 1. Fetch ALL rentals for this vehicle to inspect
         const { data: allRentals, error: allErr } = await supabase
             .from('rentals')
-            .select('*, customers(full_name)')
+            .select('*, customers(full_name, id_number, phone)')
             .eq('vehicle_id', vehicleId);
         
         if (allErr) {
@@ -76,7 +76,7 @@ export const rentalService = {
         const now = new Date().toISOString();
         const { data, error } = await supabase
             .from('rentals')
-            .select('*, customers(full_name)')
+            .select('*, customers(full_name, id_number, phone)')
             .eq('vehicle_id', vehicleId)
             .neq('status', 'cancelled')
             .gt('start_date', now)
@@ -90,7 +90,7 @@ export const rentalService = {
     async getByVehicle(vehicleId) {
         const { data, error } = await supabase
             .from('rentals')
-            .select('*, customers(full_name)')
+            .select('*, customers(full_name, id_number, phone)')
             .eq('vehicle_id', vehicleId)
             .neq('status', 'cancelled')
             .order('start_date', { ascending: true });

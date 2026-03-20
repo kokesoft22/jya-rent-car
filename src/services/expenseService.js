@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { maintenanceService } from './maintenanceService';
 
 export const expenseService = {
     async getAll() {
@@ -13,13 +14,25 @@ export const expenseService = {
     },
 
     async create(expense) {
-        const { data, error } = await supabase
+        // 1. Create the expense
+        const { data: expenseData, error } = await supabase
             .from('expenses')
             .insert([expense])
             .select();
 
         if (error) throw error;
-        return data[0];
+
+        // 2. If it has a vehicle_id, sync to maintenance_logs
+        // We sync if it's maintenance, insurance, fuel, cleaning, taxes or other (as requested)
+        if (expense.vehicle_id) {
+            try {
+                await maintenanceService.createFromExpense(expenseData[0]);
+            } catch (syncError) {
+                console.error('Error syncing expense to maintenance logs:', syncError);
+            }
+        }
+
+        return expenseData[0];
     },
 
     async getSummary() {
@@ -87,7 +100,7 @@ export const expenseService = {
             monthlyData.push({
                 month: monthNames[month],
                 income: monthIncome,
-                expenses: monthExpenses
+                expense: monthExpenses
             });
         }
 
@@ -132,12 +145,48 @@ export const expenseService = {
     },
 
     async delete(id) {
-        const { error } = await supabase
+        // 1. Get expense details to see if it's a maintenance expense
+        const { data: expense, error: fetchError } = await supabase
+            .from('expenses')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (fetchError) throw fetchError;
+
+        // 2. Delete the expense record
+        const { error: deleteExpError } = await supabase
             .from('expenses')
             .delete()
             .eq('id', id);
 
-        if (error) throw error;
+        if (deleteExpError) throw deleteExpError;
+
+        // 3. If it's a maintenance expense, try to delete the record in maintenance_logs
+        if (expense && expense.category === 'maintenance' && expense.vehicle_id) {
+            // We search for a log that matches date, vehicle and cost
+            // We use ilike to match the description part since the expense description
+            // was constructed as "Mantenimiento: [Model] - [Log Description]"
+            
+            // First, let's extract the possible original description if it follows our pattern
+            let originalDesc = expense.description;
+            if (originalDesc.includes(' - ')) {
+                originalDesc = originalDesc.split(' - ').slice(1).join(' - ');
+            }
+
+            const { error: logError } = await supabase
+                .from('maintenance_logs')
+                .delete()
+                .eq('vehicle_id', expense.vehicle_id)
+                .eq('date', expense.expense_date)
+                .eq('cost', expense.amount)
+                .ilike('description', `%${originalDesc}%`);
+
+            if (logError) {
+                console.error('Could not delete associated maintenance log:', logError);
+            }
+        }
+
         return true;
     }
 };
