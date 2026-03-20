@@ -59,7 +59,7 @@ const Login = () => {
               <input
                 id="identifier"
                 type="text"
-                placeholder="usuario"
+                placeholder="Usuario"
                 {...register('identifier')}
               />
             </div>
