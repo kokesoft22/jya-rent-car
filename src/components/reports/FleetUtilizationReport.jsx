@@ -89,17 +89,17 @@ const FleetUtilizationReport = ({ onBack }) => {
                                     <div 
                                         className="h-full bg-primary" 
                                         style={{ width: `${v.rate}%`, transition: 'width 1s ease-in-out' }}
-                                        title={`${v.rentedDays} días rentado`}
+                                        title={`${v.rentedDays} ${v.rentedDays === 1 ? 'día rentado' : 'días rentados'}`}
                                     ></div>
                                     <div 
                                         className="h-full bg-transparent" 
                                         style={{ width: `${100 - v.rate}%` }}
-                                        title={`${v.availableDays} días libre`}
+                                        title={`${v.availableDays} ${v.availableDays === 1 ? 'día libre' : 'días libres'}`}
                                     ></div>
                                 </div>
                                 <div className="flex justify-between text-xs text-muted px-1">
-                                    <span>{v.rentedDays} días ocupado</span>
-                                    <span>{v.availableDays} días libre</span>
+                                    <span>{v.rentedDays} {v.rentedDays === 1 ? 'día rentado' : 'días rentados'}</span>
+                                    <span>{v.availableDays} {v.availableDays === 1 ? 'día libre' : 'días libres'}</span>
                                 </div>
                             </div>
                         ))
