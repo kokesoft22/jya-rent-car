@@ -61,13 +61,10 @@ const FleetUtilizationReport = ({ onBack }) => {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-6 bg-slate-800/60 p-3 rounded-2xl border border-white/20 shadow-2xl backdrop-blur-md">
-                    <div className="flex flex-col ml-2">
-                        <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-0.5">Consultar Mes</span>
-                        <span className="text-[9px] text-muted font-medium uppercase opacity-60">Historial de Reporte</span>
-                    </div>
+                <div className="flex items-center gap-4 bg-slate-800/50 p-2 rounded-xl border border-white/10 shadow-lg backdrop-blur-sm">
+                    <span className="text-[10px] font-bold text-primary uppercase ml-3 tracking-widest">Consultar Mes</span>
                     <select 
-                        className="custom-select bg-slate-950/90 text-white border-none rounded-xl px-6 py-3 text-base focus:ring-2 focus:ring-primary outline-none cursor-pointer font-semibold min-w-[220px]"
+                        className="custom-select bg-slate-950/80 text-white border-none rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-primary outline-none cursor-pointer font-medium min-w-[180px]"
                         value={selectedDate.toISOString()}
                         onChange={handleMonthChange}
                     >
