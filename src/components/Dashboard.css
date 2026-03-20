@@ -476,7 +476,8 @@
     }
 
     .rr-status,
-    .rr-amount {
+    .rr-amount,
+    .rr-actions {
         display: none;
         /* Hide secondary info in simple view or we can keep it as extra rows */
     }
