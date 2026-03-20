@@ -270,9 +270,6 @@ const HeaderActions = ({ notifications, onLogout, userEmail }) => {
 
           {menuOpen && (
             <div className="user-dropdown-menu glass-card animate-fade-in-up" onClick={(e) => e.stopPropagation()}>
-              <div className="dropdown-header">
-                <span className="dropdown-user-email">{userEmail}</span>
-              </div>
               <button 
                 onClick={() => {
                   onLogout();
