@@ -62,7 +62,7 @@ export const useCustomerRentals = (customerId) => {
           *,
           vehicles (
             model,
-            plates
+            plate
           )
         `)
         .eq('customer_id', customerId)
