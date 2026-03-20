@@ -37,7 +37,7 @@ const FleetUtilizationReport = ({ onBack }) => {
                     <ArrowLeft size={22} />
                 </button>
                 <div>
-                    <h2 className="text-2xl font-bold text-white">Tasa de Ocupación de Flota</h2>
+                    <h2 className="text-2xl font-bold text-white">Tasa de Ocupación de Vehículos</h2>
                     <p className="text-muted">Análisis de uso vs disponibilidad en el mes de {currentMonth}.</p>
                 </div>
             </div>
