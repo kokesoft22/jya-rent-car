@@ -105,11 +105,31 @@ const CollectionEfficiencyReport = ({ onBack }) => {
                                 <Area type="monotone" dataKey="cobrado" name="Monto Cobrado (Real)" stroke="#06bcf9" fillOpacity={1} fill="url(#colorCobrado)" strokeWidth={3}>
                                     <LabelList 
                                         dataKey="cobrado" 
-                                        position="bottom" 
-                                        fill="#06bcf9" 
-                                        fontSize={12} 
-                                        fontWeight="bold"
-                                        formatter={(value) => value > 0 ? `$${value.toLocaleString()}` : ''}
+                                        content={(props) => {
+                                            const { x, y, value, index } = props;
+                                            if (!value || value <= 0) return null;
+                                            
+                                            // Si el monto cobrado es igual al facturado, no mostramos la etiqueta duplicada
+                                            // ya que la de "Facturado" ya se muestra arriba.
+                                            const currentData = data[index];
+                                            if (currentData && parseFloat(currentData.cobrado) === parseFloat(currentData.facturado)) {
+                                                return null;
+                                            }
+
+                                            return (
+                                                <text 
+                                                    x={x} 
+                                                    y={y} 
+                                                    dy={20} 
+                                                    fill="#06bcf9" 
+                                                    fontSize={12} 
+                                                    fontWeight="bold" 
+                                                    textAnchor="middle"
+                                                >
+                                                    ${value.toLocaleString()}
+                                                </text>
+                                            );
+                                        }}
                                     />
                                 </Area>
                             </AreaChart>
