@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -204,12 +204,29 @@ const App = () => {
 const HeaderActions = ({ notifications, onLogout, userEmail }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const menuRef = useRef(null);
+  const notifRef = useRef(null);
   const notificationsCount = notifications.length;
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+      if (notifRef.current && !notifRef.current.contains(event.target)) {
+        setNotifOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <div className="header-actions">
       <div className="user-profile-v2">
         <div 
+          ref={notifRef}
           className={`notification-btn ${notifOpen ? 'active' : ''}`} 
           onClick={() => setNotifOpen(!notifOpen)}
           title={notificationsCount > 0 ? `${notificationsCount} avisos pendientes` : 'Sin notificaciones'}
@@ -240,7 +257,7 @@ const HeaderActions = ({ notifications, onLogout, userEmail }) => {
 
         <div className="header-divider"></div>
 
-        <div className="user-dropdown-wrapper" onClick={() => setMenuOpen(!menuOpen)}>
+        <div className="user-dropdown-wrapper" ref={menuRef} onClick={() => setMenuOpen(!menuOpen)}>
           <div className="user-info-text">
             <span className="user-name">Admin</span>
             <span className="user-role">{userEmail}</span>
