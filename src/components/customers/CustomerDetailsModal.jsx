@@ -92,7 +92,7 @@ const CustomerDetailsModal = ({ isOpen, onClose, customer }) => {
                                                     <Car size={14} className="text-gray-400" />
                                                     {rental.vehicles?.model || 'Desconocido'}
                                                 </div>
-                                                <div className="text-xs text-muted ml-6">{rental.vehicles?.plate || 'N/A'}</div>
+                                                <div className="text-xs text-muted ml-6">{rental.vehicles?.license_plate || 'N/A'}</div>
                                             </td>
                                             <td className="p-4 text-gray-300">
                                                 <div className="flex items-center gap-1"><Calendar size={12}/> {formatDate(rental.start_date)}</div>
