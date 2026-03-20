@@ -262,16 +262,16 @@ const NewRental = () => {
                             <h3><User size={20} /> Información del Cliente</h3>
                             <div className="form-group">
                                 <label>Nombre Completo</label>
-                                <input type="text" className="input-field" placeholder="Juan Pérez" {...register('customer_name')} />
+                                <input type="text" className="input-field" placeholder="" {...register('customer_name')} />
                             </div>
                             <div className="form-row">
                                 <div className="form-group">
                                     <label>Cédula / Pasaporte</label>
-                                    <input type="text" className="input-field" placeholder="12345678-9" {...register('customer_id_number')} />
+                                    <input type="text" className="input-field" placeholder="" {...register('customer_id_number')} />
                                 </div>
                                 <div className="form-group">
                                     <label>Número de Teléfono</label>
-                                    <input type="tel" className="input-field" placeholder="+1 809..." {...register('customer_phone')} />
+                                    <input type="tel" className="input-field" placeholder="" {...register('customer_phone')} />
                                 </div>
                             </div>
                         </div>
