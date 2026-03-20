@@ -179,9 +179,9 @@ const App = () => {
               <input type="text" placeholder="Buscar vehículos..." />
             </div>
             <HeaderActions 
-              notificationsCount={notifications.length} 
-              userEmail={session.user.email}
+              notifications={notifications}
               onLogout={handleLogout}
+              userEmail={session.user.email}
             />
           </header>
 
@@ -201,34 +201,68 @@ const App = () => {
   );
 };
 
-const HeaderActions = ({ notificationsCount, userEmail, onLogout }) => {
+const HeaderActions = ({ notifications, onLogout, userEmail }) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const notificationsCount = notifications.length;
 
   return (
     <div className="header-actions">
       <div className="user-profile-v2">
-        <div className="notification-btn" title={notificationsCount > 0 ? `${notificationsCount} avisos pendientes` : 'Sin notificaciones'}>
-          <Bell size={22} color="#94a3b8" />
+        <div 
+          className={`notification-btn ${notifOpen ? 'active' : ''}`} 
+          onClick={() => setNotifOpen(!notifOpen)}
+          title={notificationsCount > 0 ? `${notificationsCount} avisos pendientes` : 'Sin notificaciones'}
+        >
+          <Bell size={22} color={notifOpen ? "#2563eb" : "#94a3b8"} />
           {notificationsCount > 0 && <span className="notification-badge">{notificationsCount}</span>}
+          
+          {notifOpen && (
+            <div className="notifications-dropdown glass-card animate-fade-in-up" onClick={(e) => e.stopPropagation()}>
+              <div className="dropdown-header">
+                <h3>Notificaciones</h3>
+              </div>
+              <div className="notifications-list">
+                {notifications.length > 0 ? (
+                  notifications.map((n, i) => (
+                    <div key={i} className="notification-item">
+                      <div className={`notif-icon ${n.type}`}></div>
+                      <span>{n.message}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="no-notifications">No hay avisos nuevos</div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="header-divider"></div>
 
-        <div className="user-info-text" onClick={() => setMenuOpen(!menuOpen)}>
-          <span className="user-name">Admin</span>
-          <span className="user-role">{userEmail}</span>
-        </div>
+        <div className="user-dropdown-wrapper" onClick={() => setMenuOpen(!menuOpen)}>
+          <div className="user-info-text">
+            <span className="user-name">Admin</span>
+            <span className="user-role">{userEmail}</span>
+          </div>
 
-        <div className="user-avatar-container" onClick={() => setMenuOpen(!menuOpen)}>
-          <img src={avatar} alt="Admin" className="user-avatar-img" />
-          <ChevronDown size={14} className={`dropdown-icon ${menuOpen ? 'open' : ''}`} />
-          
+          <div className="user-avatar-container">
+            <img src={avatar} alt="Admin" className="user-avatar-img" />
+            <ChevronDown size={14} className={`dropdown-icon ${menuOpen ? 'open' : ''}`} />
+          </div>
+
           {menuOpen && (
-            <div className="user-dropdown-menu glass-card">
+            <div className="user-dropdown-menu glass-card animate-fade-in-up" onClick={(e) => e.stopPropagation()}>
               <div className="dropdown-header">
                 <span className="dropdown-user-email">{userEmail}</span>
               </div>
-              <button onClick={onLogout} className="dropdown-item logout-action">
+              <button 
+                onClick={() => {
+                  onLogout();
+                  setMenuOpen(false);
+                }} 
+                className="dropdown-item logout-action"
+              >
                 <LogOut size={18} />
                 <span>Cerrar Sesión</span>
               </button>
