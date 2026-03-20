@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import '../components/Login.css';
 
 const loginSchema = z.object({
-  email: z.string().email("Correo electrónico inválido"),
+  identifier: z.string().min(1, "El usuario o correo es requerido"),
   password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
 });
 
@@ -24,8 +24,14 @@ const Login = () => {
 
   const onSubmit = async (data) => {
     try {
+      // Mapeo de usuario a correo para facilitar el login
+      let loginEmail = data.identifier;
+      if (loginEmail.toLowerCase() === 'yoelperez') {
+        loginEmail = 'yoelperez1998@gmail.com';
+      }
+
       const { error } = await supabase.auth.signInWithPassword({
-        email: data.email,
+        email: loginEmail,
         password: data.password,
       });
 
@@ -49,17 +55,17 @@ const Login = () => {
 
         <form onSubmit={handleSubmit(onSubmit)} className="login-form mt-8">
           <div className="form-group">
-            <label htmlFor="email">Correo Electrónico</label>
-            <div className={`input-wrapper ${errors.email ? 'border-danger' : ''}`}>
+            <label htmlFor="identifier">Usuario o Correo</label>
+            <div className={`input-wrapper ${errors.identifier ? 'border-danger' : ''}`}>
               <Mail className="input-icon" size={20} />
               <input
-                id="email"
-                type="email"
-                placeholder="nombre@empresa.com"
-                {...register('email')}
+                id="identifier"
+                type="text"
+                placeholder="yoelperez o correo@ejemplo.com"
+                {...register('identifier')}
               />
             </div>
-            {errors.email && <span className="text-xs text-danger mt-1">{errors.email.message}</span>}
+            {errors.identifier && <span className="text-xs text-danger mt-1">{errors.identifier.message}</span>}
           </div>
 
           <div className="form-group mt-4">
