@@ -119,6 +119,7 @@ export const useDashboardStats = () => {
                 .from('rentals')
                 .select('*, vehicles(model, image_url), customers(full_name)')
                 .eq('status', 'active')
+                .lte('start_date', todayStr)
                 .gte('end_date', todayStr)
                 .order('end_date', { ascending: true })
                 .limit(4);
