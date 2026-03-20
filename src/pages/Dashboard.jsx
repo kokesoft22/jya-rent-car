@@ -163,7 +163,7 @@ const Dashboard = () => {
                 </div>
                 <div className="glass-card chart-container returning-soon-card">
                     <div className="chart-header">
-                        <h3>Próximas Devoluciones</h3>
+                        <h3>Próximas Entregas</h3>
                     </div>
                     <div className="maintenance-list">
                         {returningSoon && returningSoon.length > 0 ? (
@@ -204,7 +204,7 @@ const Dashboard = () => {
                                 );
                             })
                         ) : (
-                            <div className="center-text muted py-4">No hay devoluciones próximas.</div>
+                            <div className="center-text muted py-4">No hay entregas próximas.</div>
                         )}
                     </div>
                 </div>
