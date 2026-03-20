@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { 
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-    PieChart, Pie, Cell, Legend
+    PieChart, Pie, Cell, Legend, LabelList
 } from 'recharts';
 import { useFinances, useDeleteExpense } from '../hooks/useFinances';
 import { useVehicles } from '../hooks/useVehicles';
@@ -34,16 +34,29 @@ const CATEGORY_TRANSLATIONS = {
     other: 'Otros'
 };
 
-const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }) => {
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+const renderCombinedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, value }) => {
+    // Inner percentage label
+    const innerRadius2 = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const ix = cx + innerRadius2 * Math.cos(-midAngle * RADIAN);
+    const iy = cy + innerRadius2 * Math.sin(-midAngle * RADIAN);
 
-    return percent > 0.05 ? (
-        <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize="12">
-            {`${(percent * 100).toFixed(0)}%`}
-        </text>
-    ) : null;
+    // Outer dollar label
+    const outerR = outerRadius + 25;
+    const ox = cx + outerR * Math.cos(-midAngle * RADIAN);
+    const oy = cy + outerR * Math.sin(-midAngle * RADIAN);
+
+    return (
+        <g>
+            {percent > 0.05 && (
+                <text x={ix} y={iy} fill="white" textAnchor="middle" dominantBaseline="central" fontSize="12">
+                    {`${(percent * 100).toFixed(0)}%`}
+                </text>
+            )}
+            <text x={ox} y={oy} fill="#cbd5e1" textAnchor={ox > cx ? 'start' : 'end'} dominantBaseline="central" fontSize="11" fontWeight="600">
+                {`$${value.toLocaleString()}`}
+            </text>
+        </g>
+    );
 };
 
 const FinanceCard = ({ title, amount, icon: Icon, trend, color, label }) => (
@@ -152,7 +165,7 @@ const Finances = () => {
                     </div>
                     <div className="chart-body" style={{ height: '350px' }}>
                         <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={monthlyData}>
+                            <AreaChart data={monthlyData} margin={{ top: 25, right: 50, left: 0, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="#06bcf9" stopOpacity={0.3} />
@@ -171,8 +184,12 @@ const Finances = () => {
                                     itemStyle={{ color: '#fff' }}
                                     labelStyle={{ color: '#fff' }}
                                 />
-                                <Area type="monotone" dataKey="income" name="Ingresos" stroke="#06bcf9" fillOpacity={1} fill="url(#colorIncome)" strokeWidth={3} />
-                                <Area type="monotone" dataKey="expense" name="Gastos" stroke="#ef4444" fillOpacity={1} fill="url(#colorExpense)" strokeWidth={3} />
+                                <Area type="monotone" dataKey="income" name="Ingresos" stroke="#06bcf9" fillOpacity={1} fill="url(#colorIncome)" strokeWidth={3}>
+                                    <LabelList dataKey="income" position="top" offset={12} formatter={(value) => `$${value.toLocaleString()}`} style={{ fill: '#06bcf9', fontSize: '11px', fontWeight: 700 }} />
+                                </Area>
+                                <Area type="monotone" dataKey="expense" name="Gastos" stroke="#ef4444" fillOpacity={1} fill="url(#colorExpense)" strokeWidth={3}>
+                                    <LabelList dataKey="expense" position="bottom" offset={12} formatter={(value) => `$${value.toLocaleString()}`} style={{ fill: '#ef4444', fontSize: '11px', fontWeight: 700 }} />
+                                </Area>
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
@@ -191,10 +208,10 @@ const Finances = () => {
                                 <Pie
                                     data={categoryData}
                                     cx="50%"
-                                    cy="50%"
-                                    labelLine={false}
-                                    label={renderCustomizedLabel}
-                                    outerRadius={100}
+                                    cy="45%"
+                                    labelLine={{ stroke: '#94a3b8', strokeWidth: 1 }}
+                                    label={renderCombinedLabel}
+                                    outerRadius={90}
                                     fill="#8884d8"
                                     dataKey="value"
                                 >
@@ -207,7 +224,20 @@ const Finances = () => {
                                 itemStyle={{ color: '#fff' }}
                                 labelStyle={{ color: '#fff' }}
                             />
-                                <Legend verticalAlign="bottom" height={36} />
+                                <Legend 
+                                    verticalAlign="bottom" 
+                                    height={50}
+                                    content={({ payload }) => (
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 16px', justifyContent: 'center', paddingTop: '8px' }}>
+                                            {payload.map((entry, index) => (
+                                                <div key={`legend-${index}`} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                    <div style={{ width: '10px', height: '10px', borderRadius: '2px', backgroundColor: entry.color, flexShrink: 0 }} />
+                                                    <span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 500 }}>{entry.value}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                />
                             </PieChart>
                         </ResponsiveContainer>
                     </div>
