@@ -1,6 +1,6 @@
 import React from 'react';
 import { Loader, ArrowLeft, Target, TrendingUp, AlertCircle } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LabelList } from 'recharts';
 import { useCollectionEfficiency } from '../../hooks/useReportsData';
 import '../Reports.css';
 
@@ -73,7 +73,7 @@ const CollectionEfficiencyReport = ({ onBack }) => {
                 <div style={{ height: '350px' }}>
                     {data && data.some(d => d.facturado > 0 || d.cobrado > 0) ? (
                         <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                            <AreaChart data={data} margin={{ top: 30, right: 40, left: 10, bottom: 10 }}>
                                 <defs>
                                     <linearGradient id="colorFacturado" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.3} />
@@ -92,8 +92,26 @@ const CollectionEfficiencyReport = ({ onBack }) => {
                                     formatter={(value) => `$${value.toLocaleString()}`}
                                 />
                                 <Legend />
-                                <Area type="monotone" dataKey="facturado" name="Monto Facturado (Contratos)" stroke="#94a3b8" fillOpacity={1} fill="url(#colorFacturado)" strokeWidth={2} />
-                                <Area type="monotone" dataKey="cobrado" name="Monto Cobrado (Real)" stroke="#06bcf9" fillOpacity={1} fill="url(#colorCobrado)" strokeWidth={3} />
+                                <Area type="monotone" dataKey="facturado" name="Monto Facturado (Contratos)" stroke="#94a3b8" fillOpacity={1} fill="url(#colorFacturado)" strokeWidth={2}>
+                                    <LabelList 
+                                        dataKey="facturado" 
+                                        position="top" 
+                                        fill="#94a3b8" 
+                                        fontSize={12} 
+                                        fontWeight="bold"
+                                        formatter={(value) => value > 0 ? `$${value.toLocaleString()}` : ''}
+                                    />
+                                </Area>
+                                <Area type="monotone" dataKey="cobrado" name="Monto Cobrado (Real)" stroke="#06bcf9" fillOpacity={1} fill="url(#colorCobrado)" strokeWidth={3}>
+                                    <LabelList 
+                                        dataKey="cobrado" 
+                                        position="bottom" 
+                                        fill="#06bcf9" 
+                                        fontSize={12} 
+                                        fontWeight="bold"
+                                        formatter={(value) => value > 0 ? `$${value.toLocaleString()}` : ''}
+                                    />
+                                </Area>
                             </AreaChart>
                         </ResponsiveContainer>
                     ) : (
