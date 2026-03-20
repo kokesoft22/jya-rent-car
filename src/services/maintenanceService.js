@@ -24,7 +24,7 @@ export const maintenanceService = {
         if (error) throw error;
 
         // 2. Update vehicle's last maintenance date and mileage if needed
-        await this.updateVehicleFromLog(log);
+        await maintenanceService.updateVehicleFromLog(log);
 
         // 3. If cost > 0 and not skipping, create an expense record
         if (!skipExpense && parseFloat(log.cost) > 0) {
@@ -85,7 +85,7 @@ export const maintenanceService = {
             date: expense.expense_date,
             category: expense.category
         };
-        return this.create(log, true);
+        return maintenanceService.create(log, true);
     },
 
     async update(id, updates) {
