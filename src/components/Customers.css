@@ -166,10 +166,10 @@
 
 .actions-dropdown {
     position: absolute;
-    bottom: 100%;
-    /* Open upwards */
+    top: 100%;
+    /* Open downwards */
     right: 0;
-    margin-bottom: 8px;
+    margin-top: 8px;
     background: #1e293b;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
@@ -177,13 +177,13 @@
     min-width: 160px;
     z-index: 1000;
     overflow: hidden;
-    animation: slideInUp 0.2s ease-out;
+    animation: slideInDown 0.2s ease-out;
 }
 
-@keyframes slideInUp {
+@keyframes slideInDown {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(-10px);
     }
 
     to {
