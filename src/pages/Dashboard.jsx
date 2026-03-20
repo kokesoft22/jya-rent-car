@@ -151,7 +151,7 @@ const Dashboard = () => {
                                         <span className="rr-vehicle-name">{rental.vehicles?.model || 'N/A'}</span>
                                     </div>
                                     <span className="rr-customer">{rental.customers?.full_name || 'N/A'}</span>
-                                    <span>{getStatusBadge(rental.status)}</span>
+                                    <span className="rr-status">{getStatusBadge(rental.status)}</span>
                                     <span className="rr-amount">${parseFloat(rental.total_amount || 0).toLocaleString()}</span>
                                     <span className="rr-actions"><MoreHorizontal size={16} /></span>
                                 </div>

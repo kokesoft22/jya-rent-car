@@ -475,7 +475,7 @@
         margin-bottom: 8px;
     }
 
-    .rr-customer,
+    .rr-status,
     .rr-amount {
         display: none;
         /* Hide secondary info in simple view or we can keep it as extra rows */
