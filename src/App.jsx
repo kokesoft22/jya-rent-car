@@ -19,6 +19,7 @@ import logo from './assets/logo.png';
 import avatar from './assets/avatar.png';
 import { supabase } from './lib/supabase';
 import './App.css';
+import { getLocalTodayDate } from './utils/dateUtils';
 
 // Componentes temporales para secciones pendientes
 import Dashboard from './pages/Dashboard';
@@ -99,7 +100,7 @@ const App = () => {
         .select('model')
         .eq('status', 'maintenance');
 
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalTodayDate();
       const { data: expiringRentals } = await supabase
         .from('rentals')
         .select('vehicles(model)')

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Car, Calendar, AlertTriangle, MoreVertical, Edit2, Trash2, Eye, Clock } from 'lucide-react';
 import { rentalService } from '../../services/rentalService';
-import { formatDateSafe } from '../../utils/dateUtils';
+import { formatDateSafe, getLocalTodayDate, getDaysDiff } from '../../utils/dateUtils';
 
 export const VehicleCard = ({ vehicle, onEdit, onDelete, onView }) => {
     const [currentStatus, setCurrentStatus] = useState(vehicle.status);
@@ -11,7 +11,7 @@ export const VehicleCard = ({ vehicle, onEdit, onDelete, onView }) => {
     useEffect(() => {
         const checkStatus = async () => {
             try {
-                const today = new Date().toISOString().split('T')[0];
+                const today = getLocalTodayDate();
                 const activeRentalData = await rentalService.getActiveRental(vehicle.id, today);
                 
                 if (activeRentalData) {
@@ -53,12 +53,9 @@ export const VehicleCard = ({ vehicle, onEdit, onDelete, onView }) => {
                         <Clock size={14} strokeWidth={2.5} />
                         <span>
                             {(() => {
-                                const start = new Date(nextRental.start_date);
-                                const today = new Date();
-                                const startDate = new Date(start.getFullYear(), start.getMonth(), start.getDate());
-                                const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-                                const diffTime = startDate - todayDate;
-                                const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+                                const todayStr = getLocalTodayDate();
+                                const startStr = nextRental.start_date.split('T')[0];
+                                const diffDays = getDaysDiff(todayStr, startStr);
                                 
                                 if (diffDays === 0) return `Renta Hoy • ${nextRental.customers?.full_name}`;
                                 if (diffDays === 1) return `Renta Mañana • ${nextRental.customers?.full_name}`;
@@ -83,7 +80,10 @@ export const VehicleCard = ({ vehicle, onEdit, onDelete, onView }) => {
                                 </span>
                             )}
                             {vehicle.insurance_expiry && (() => {
-                                const daysLeft = Math.ceil((new Date(vehicle.insurance_expiry) - new Date()) / (1000 * 60 * 60 * 24));
+                                const todayStr = getLocalTodayDate();
+                                const expiryStr = vehicle.insurance_expiry.split('T')[0];
+                                const daysLeft = getDaysDiff(todayStr, expiryStr);
+
                                 const isExpiring = daysLeft <= 10 && daysLeft > 0;
                                 const isExpired = daysLeft <= 0;
                                 return (

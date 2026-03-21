@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useAddExpense } from '../../hooks/useFinances';
 import { toast } from 'sonner';
+import { getLocalTodayDate } from '../../utils/dateUtils';
 
 const expenseSchema = z.object({
     description: z.string().min(1, "Descripción obligatoria"),
@@ -28,7 +29,7 @@ const AddExpenseModal = ({ isOpen, onClose, vehicles }) => {
             description: '',
             amount: '',
             category: 'maintenance',
-            expense_date: new Date().toISOString().split('T')[0],
+            expense_date: getLocalTodayDate(),
             vehicle_id: ''
         }
     });

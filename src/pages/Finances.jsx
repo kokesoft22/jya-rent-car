@@ -22,6 +22,7 @@ import { useFinances, useDeleteExpense } from '../hooks/useFinances';
 import { useVehicles } from '../hooks/useVehicles';
 import AddExpenseModal from '../components/finances/AddExpenseModal';
 import '../components/Finances.css';
+import { getLocalTodayDate } from '../utils/dateUtils';
 
 const RADIAN = Math.PI / 180;
 const COLORS = ['#06bcf9', '#8b5cf6', '#f59e0b', '#ef4444', '#10b981', '#6366f1'];
@@ -123,7 +124,7 @@ const Finances = () => {
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `reporte_finanzas_${new Date().toISOString().split('T')[0]}.csv`);
+        link.setAttribute("download", `reporte_finanzas_${getLocalTodayDate()}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

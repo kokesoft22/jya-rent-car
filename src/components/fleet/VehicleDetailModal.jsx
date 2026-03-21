@@ -6,7 +6,7 @@ import { customerService } from '../../services/customerService';
 import { useVehicleMaintenanceLogs, useAddMaintenanceLog, useUpdateMaintenanceLog, useDeleteMaintenanceLog } from '../../hooks/useMaintenance';
 import { toast } from 'sonner';
 import { Calendar as ReactCalendar } from 'react-calendar';
-import { formatDateSafe } from '../../utils/dateUtils';
+import { formatDateSafe, getLocalTodayDate } from '../../utils/dateUtils';
 import 'react-calendar/dist/Calendar.css';
 
 export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
@@ -32,7 +32,7 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
     });
 
     const [newLog, setNewLog] = useState({
-        description: '', cost: '', mileage_at_service: '', date: new Date().toISOString().split('T')[0],
+        description: '', cost: '', mileage_at_service: '', date: getLocalTodayDate(),
         category: 'maintenance'
     });
 
@@ -83,7 +83,7 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
                 await addLogMutation.mutateAsync(logData);
             }
 
-            setNewLog({ description: '', cost: '', mileage_at_service: '', date: new Date().toISOString().split('T')[0], category: 'maintenance' });
+            setNewLog({ description: '', cost: '', mileage_at_service: '', date: getLocalTodayDate(), category: 'maintenance' });
             setShowForm(false);
             setEditingLogId(null);
         } catch (err) {
@@ -359,7 +359,7 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
     };
 
     const activeRental = scheduledRentals.find(rent => {
-        const today = new Date().toISOString().split('T')[0];
+        const today = getLocalTodayDate();
         return rent.status === 'active' && rent.start_date <= today && rent.end_date >= today;
     });
 
@@ -497,7 +497,7 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
                         ) : activeTab === 'agenda' ? (
                             <div className="agenda-list" style={{ padding: '0 16px' }}>
                                 {scheduledRentals.filter(r => r.status === 'active').map(rent => {
-                                    const today = new Date().toISOString().split('T')[0];
+                                    const today = getLocalTodayDate();
                                     const startDate = rent.start_date.split('T')[0];
                                     const endDate = rent.end_date.split('T')[0];
                                     const isActive = rent.status === 'active' && 

@@ -35,9 +35,7 @@ const EditRentalModal = ({ isOpen, onClose, rental }) => {
             // Format dates for datetime-local input
             let formattedDate = '';
             if (rental.end_date) {
-                const dateObj = new Date(rental.end_date);
-                // Get YYYY-MM-DD
-                formattedDate = dateObj.toISOString().split('T')[0];
+                formattedDate = rental.end_date.split('T')[0];
             }
 
             reset({
@@ -53,11 +51,8 @@ const EditRentalModal = ({ isOpen, onClose, rental }) => {
 
     const onSubmit = async (data) => {
         try {
-            // Convert end_date back to ISO string or just keep it as YYYY-MM-DD if backend accepts it
-            const payload = { ...data };
-            if (payload.end_date) {
-                payload.end_date = new Date(payload.end_date).toISOString();
-            }
+            // Keep end_date as YYYY-MM-DD representation
+            let payload = { ...data };
             
             await updateRentalMutation.mutateAsync({ id: rental.id, data: payload });
             onClose();

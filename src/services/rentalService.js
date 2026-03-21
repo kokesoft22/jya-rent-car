@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { getLocalTodayDate } from '../utils/dateUtils';
 
 export const rentalService = {
     async getAll() {
@@ -73,13 +74,13 @@ export const rentalService = {
     },
 
     async getNextRental(vehicleId) {
-        const now = new Date().toISOString();
+        const todayStr = getLocalTodayDate();
         const { data, error } = await supabase
             .from('rentals')
             .select('*, customers(full_name, id_number, phone)')
             .eq('vehicle_id', vehicleId)
             .neq('status', 'cancelled')
-            .gt('start_date', now)
+            .gt('start_date', todayStr)
             .order('start_date', { ascending: true })
             .limit(1);
 
@@ -115,7 +116,7 @@ export const rentalService = {
         if (rentalError) throw rentalError;
 
         // Simple synchronization: If the rental starts today or earlier and hasn't ended, mark vehicle as rented.
-        const today = new Date().toISOString().split('T')[0];
+        const today = getLocalTodayDate();
         if (rental.start_date <= today && rental.end_date >= today) {
             await supabase
                 .from('vehicles')
@@ -171,7 +172,7 @@ export const rentalService = {
 
             // 3. Update vehicle status if the deleted rental was active today
             if (rental && rental.vehicle_id) {
-                const today = new Date().toISOString().split('T')[0];
+                const today = getLocalTodayDate();
                 const isCurrentlyRented = rental.status === 'active' && 
                                           rental.start_date <= today && 
                                           rental.end_date >= today;

@@ -1,12 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
+import { getLocalTodayDate } from '../utils/dateUtils';
 
 export const useDashboardStats = () => {
     return useQuery({
         queryKey: ['dashboard-stats'],
         queryFn: async () => {
             const now = new Date();
-            const todayStr = now.toISOString().split('T')[0];
+            const todayStr = getLocalTodayDate();
 
             // 1. Parallel basic stats
             const [

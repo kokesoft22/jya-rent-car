@@ -8,6 +8,7 @@ import PaymentModal from '../components/rentals/PaymentModal';
 import EditRentalModal from '../components/rentals/EditRentalModal';
 import { toast } from 'sonner';
 import '../components/Rentals.css';
+import { getLocalTodayDate } from '../utils/dateUtils';
 
 const Rentals = () => {
     const { data: rentals = [], isLoading, error, refetch } = useRentals();
@@ -30,7 +31,7 @@ const Rentals = () => {
 
         if (statusFilter === 'all') return searchMatch;
         
-        const today = new Date().toISOString().split('T')[0];
+        const today = getLocalTodayDate();
         const startDate = r.start_date ? r.start_date.split('T')[0] : '';
         
         if (statusFilter === 'active') {
@@ -41,7 +42,7 @@ const Rentals = () => {
         }
         return searchMatch && r.status === statusFilter;
     }).sort((a, b) => {
-        const today = new Date().toISOString().split('T')[0];
+        const today = getLocalTodayDate();
         const aIsActive = a.status === 'active' && a.start_date.split('T')[0] <= today;
         const bIsActive = b.status === 'active' && b.start_date.split('T')[0] <= today;
         const aIsReserved = a.status === 'active' && a.start_date.split('T')[0] > today;

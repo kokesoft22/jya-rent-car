@@ -20,6 +20,9 @@ import { customerService } from '../services/customerService';
 import { rentalService } from '../services/rentalService';
 import { useAddRental } from '../hooks/useRentals';
 import { toast } from 'sonner';
+import { Calendar as ReactCalendar } from 'react-calendar';
+import { formatDateSafe, getLocalTodayDate } from '../utils/dateUtils';
+import 'react-calendar/dist/Calendar.css';
 
 const rentalFormSchema = z.object({
     vehicle_id: z.string().min(1, "Selecciona un vehículo"),
@@ -41,6 +44,9 @@ const NewRental = () => {
     const [availabilityConflicts, setAvailabilityConflicts] = useState([]);
     const [selectedVehicle, setSelectedVehicle] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [scheduledRentals, setScheduledRentals] = useState([]);
+    const [showCalendar, setShowCalendar] = useState(false);
+    const [loadingRentals, setLoadingRentals] = useState(false);
 
     const {
         register,
@@ -78,7 +84,7 @@ const NewRental = () => {
     const loadVehicles = async () => {
         try {
             const data = await vehicleService.getAll();
-            const today = new Date().toISOString().split('T')[0];
+            const today = getLocalTodayDate();
             
             // Filter out vehicles that are in maintenance or have active rentals today
             const availableVehicles = await Promise.all(data.map(async (v) => {
@@ -101,8 +107,39 @@ const NewRental = () => {
         if (vehicle && !getValues('custom_daily_rate')) {
             setValue('custom_daily_rate', vehicle.daily_rate);
         }
+        
+        if (vehicle) {
+            setLoadingRentals(true);
+            rentalService.getByVehicle(vehicle.id)
+                .then(rentals => setScheduledRentals(rentals))
+                .catch(err => console.error("Error loading rentals for vehicle:", err))
+                .finally(() => setLoadingRentals(false));
+        } else {
+            setScheduledRentals([]);
+        }
+
         checkConflicts(watchedVehicleId, watchedStartDate, watchedEndDate);
     }, [watchedVehicleId, watchedStartDate, watchedEndDate, vehicles, setValue, getValues]);
+
+    const isDateOccupied = (date) => {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        const dStr = `${y}-${m}-${d}`;
+        return scheduledRentals.some(rent => {
+            if (rent.status !== 'active') return false;
+            const start = rent.start_date.split('T')[0];
+            const end = rent.end_date.split('T')[0];
+            return dStr >= start && dStr <= end;
+        });
+    };
+
+    const getTileClassName = ({ date, view }) => {
+        if (view === 'month' && isDateOccupied(date)) {
+            return 'occupied-date';
+        }
+        return null;
+    };
 
     const checkConflicts = async (vehicleId, start, end) => {
         if (vehicleId && start && end) {
@@ -134,7 +171,7 @@ const NewRental = () => {
         if (e) e.preventDefault();
         
         if (step === 1) {
-            const today = new Date().toISOString().split('T')[0];
+            const today = getLocalTodayDate();
             if (!watchedVehicleId) return toast.error('Selecciona un vehículo');
             if (!watchedStartDate || !watchedEndDate) return toast.error('Selecciona el rango de fechas');
             if (watchedStartDate < today) return toast.error('La fecha de inicio no puede ser en el pasado');
@@ -232,15 +269,49 @@ const NewRental = () => {
                                     ))}
                                 </select>
                             </div>
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label>Fecha de Recogida</label>
-                                    <input type="date" className="input-field" {...register('start_date')} />
-                                </div>
-                                <div className="form-group">
-                                    <label>Fecha de Entrega</label>
-                                    <input type="date" className="input-field" {...register('end_date')} />
-                                </div>
+                            <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', marginTop: '16px' }}>
+                                <button type="button" onClick={() => setShowCalendar(!showCalendar)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '10px 14px', color: 'white', cursor: 'pointer', fontSize: '13px' }}>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <Calendar size={16} />
+                                        {watchedStartDate && watchedEndDate 
+                                            ? `${formatDateSafe(watchedStartDate)} → ${formatDateSafe(watchedEndDate)}`
+                                            : 'Selecciona Fecha'
+                                        }
+                                    </span>
+                                    <span style={{ fontSize: '10px', color: '#94a3b8' }}>{showCalendar ? '▲ Cerrar' : '▼ Abrir'}</span>
+                                </button>
+                                {showCalendar && (
+                                    <div style={{ marginTop: '10px' }}>
+                                        <p style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '8px' }}>🔴 Rojo = Días Ocupados</p>
+                                        {loadingRentals ? (
+                                            <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
+                                                <Loader className="animate-spin" size={24} color="#94a3b8" />
+                                            </div>
+                                        ) : (
+                                            <ReactCalendar 
+                                                selectRange={true}
+                                                onChange={(values) => {
+                                                    if (values && values.length === 2) {
+                                                        const toLocalDate = (d) => {
+                                                            const y = d.getFullYear();
+                                                            const m = String(d.getMonth() + 1).padStart(2, '0');
+                                                            const day = String(d.getDate()).padStart(2, '0');
+                                                            return `${y}-${m}-${day}`;
+                                                        };
+                                                        const start = toLocalDate(values[0]);
+                                                        const end = toLocalDate(values[1]);
+                                                        setValue('start_date', start, { shouldValidate: true });
+                                                        setValue('end_date', end, { shouldValidate: true });
+                                                        checkConflicts(watchedVehicleId, start, end);
+                                                        setShowCalendar(false);
+                                                    }
+                                                }}
+                                                value={watchedStartDate && watchedEndDate ? [new Date(watchedStartDate + 'T00:00:00'), new Date(watchedEndDate + 'T00:00:00')] : null}
+                                                tileClassName={getTileClassName}
+                                            />
+                                        )}
+                                    </div>
+                                )}
                             </div>
                             {rentalDays > 0 && (
                                 <div className="days-indicator-box">
