@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { getLocalTodayDate } from '../utils/dateUtils';
+import { getLocalTodayDate, normalizeDate } from '../utils/dateUtils';
 
 export const rentalService = {
     async getAll() {
@@ -35,19 +35,8 @@ export const rentalService = {
         return (data || []).filter(r => r.status === 'active' || r.status === 'pending');
     },
 
-    async getActiveRental(vehicleId, date) {
-        // Find a rental that is 'active' or 'pending' and includes the specified date
-        
-        // Helper to normalize dates (DD/MM/YYYY or YYYY-MM-DD to YYYY-MM-DD)
-        const normalizeDate = (dateStr) => {
-            if (!dateStr) return null;
-            if (dateStr.includes('/')) {
-                const [d, m, y] = dateStr.split('/');
-                return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
-            }
-            return dateStr;
-        };
 
+    async getActiveRental(vehicleId, date) {
         const targetDate = normalizeDate(date);
 
         // 1. Fetch ALL rentals for this vehicle to inspect
@@ -118,13 +107,26 @@ export const rentalService = {
         // Simple synchronization: If the rental starts today or earlier and hasn't ended, mark vehicle as rented.
         const today = getLocalTodayDate();
         if (rental.start_date <= today && rental.end_date >= today) {
-            await supabase
-                .from('vehicles')
-                .update({ status: 'rented' })
-                .eq('id', rental.vehicle_id);
         }
 
         return data[0];
+    },
+
+    async getAllActiveRentals(date) {
+        const targetDate = normalizeDate(date);
+        const { data, error } = await supabase
+            .from('rentals')
+            .select('*, customers(full_name, id_number, phone)')
+            .in('status', ['active', 'pending']);
+
+        if (error) throw error;
+
+        // Filter by date range manually to ensure consistency with normalizeDate
+        return (data || []).filter(r => {
+            const rStart = normalizeDate(r.start_date);
+            const rEnd = normalizeDate(r.end_date);
+            return rStart <= targetDate && rEnd >= targetDate;
+        });
     },
 
     async complete(id) {

@@ -9,6 +9,14 @@ export const useRentals = () => {
   });
 };
 
+export const useActiveRentals = (date) => {
+  return useQuery({
+    queryKey: ['rentals', 'active', date],
+    queryFn: () => rentalService.getAllActiveRentals(date),
+    enabled: !!date,
+  });
+};
+
 export const useVehicleRentals = (vehicleId) => {
   return useQuery({
     queryKey: ['rentals', 'vehicle', vehicleId],

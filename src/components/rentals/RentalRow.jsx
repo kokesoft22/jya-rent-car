@@ -73,11 +73,12 @@ const RentalRow = ({ rental, onComplete, onDelete, onPayment, onEdit }) => {
     const balance = Math.max(0, totalAmount - amountPaid);
 
     const getStatusBadge = (status) => {
-        if (status === 'active' && start > today) {
-            return <span className="status-badge reserved">Reservada</span>;
+        if (status === 'active') {
+            if (start > today) return <span className="status-badge reserved">Reservada</span>;
+            if (end < today) return <span className="status-badge completed">Completada</span>;
+            return <span className="status-badge active">Activa</span>;
         }
         switch (status) {
-            case 'active': return <span className="status-badge active">Activa</span>;
             case 'completed': return <span className="status-badge completed">Completada</span>;
             case 'cancelled': return <span className="status-badge cancelled">Cancelada</span>;
             default: return <span className="status-badge">{status}</span>;

@@ -6,12 +6,16 @@ import AddVehicleModal from '../components/fleet/AddVehicleModal';
 import { EditVehicleModal } from '../components/fleet/EditVehicleModal';
 import { VehicleDetailModal } from '../components/fleet/VehicleDetailModal';
 import { useVehicles, useDeleteVehicle } from '../hooks/useVehicles';
+import { useActiveRentals } from '../hooks/useRentals';
+import { getLocalTodayDate, normalizeDate } from '../utils/dateUtils';
 import './Fleet.css';
 
 const Fleet = () => {
     const queryClient = useQueryClient();
     const { data: vehicles = [], isLoading, isError, error } = useVehicles();
     const deleteVehicleMutation = useDeleteVehicle();
+    const today = getLocalTodayDate();
+    const { data: activeRentals = [] } = useActiveRentals(today);
 
     console.log('FLEET DATA:', vehicles);
 
@@ -21,7 +25,12 @@ const Fleet = () => {
     const [editVehicle, setEditVehicle] = useState(null);
     const [detailVehicle, setDetailVehicle] = useState(null);
 
-    const filteredVehicles = vehicles.filter(v => {
+    const filteredVehicles = vehicles.map(v => {
+        // Calculate dynamic status for filtering
+        const currentRental = activeRentals.find(r => r.vehicle_id === v.id);
+        const effectiveStatus = currentRental ? 'rented' : (v.status === 'rented' ? 'available' : (v.status || 'available'));
+        return { ...v, effectiveStatus, currentRental };
+    }).filter(v => {
         let statusMatch = true;
         if (filter !== 'all') {
             const statusMap = {
@@ -29,7 +38,7 @@ const Fleet = () => {
                 'rentado': 'rented',
                 'mantenimiento': 'maintenance'
             };
-            statusMatch = v.status === statusMap[filter];
+            statusMatch = v.effectiveStatus === statusMap[filter];
         }
         const searchMatch =
             v.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -94,6 +103,7 @@ const Fleet = () => {
                             <VehicleCard
                                 key={v.id}
                                 vehicle={v}
+                                currentRental={v.currentRental}
                                 onEdit={(veh) => setEditVehicle(veh)}
                                 onDelete={handleDeleteVehicle}
                                 onView={(veh) => setDetailVehicle(veh)}

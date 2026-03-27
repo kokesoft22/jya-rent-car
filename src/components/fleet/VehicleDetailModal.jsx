@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { X, Clock, AlertTriangle, Calendar, User, Edit2, Trash2, Plus } from 'lucide-react';
+import { X, Clock, AlertTriangle, Calendar, User, Edit2, Trash2, Plus, CheckCircle } from 'lucide-react';
 import { maintenanceService } from '../../services/maintenanceService';
 import { rentalService } from '../../services/rentalService';
 import { customerService } from '../../services/customerService';
 import { useVehicleMaintenanceLogs, useAddMaintenanceLog, useUpdateMaintenanceLog, useDeleteMaintenanceLog } from '../../hooks/useMaintenance';
 import { toast } from 'sonner';
 import { Calendar as ReactCalendar } from 'react-calendar';
-import { formatDateSafe, getLocalTodayDate } from '../../utils/dateUtils';
+import { formatDateSafe, getLocalTodayDate, normalizeDate } from '../../utils/dateUtils';
 import 'react-calendar/dist/Calendar.css';
 
 export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
@@ -59,7 +59,16 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
         try {
             setLoadingData(true);
             const rentals = await rentalService.getByVehicle(vehicle.id);
-            setScheduledRentals(rentals);
+            const today = getLocalTodayDate();
+            
+            const normalize = normalizeDate;
+
+            // Filtrar para mostrar solo rentas activas o pendientes que no hayan terminado
+            const activeOrPending = rentals.filter(rent => 
+                (rent.status === 'active' || rent.status === 'pending') && 
+                normalize(rent.end_date) >= today
+            );
+            setScheduledRentals(activeOrPending);
         } catch (err) {
             console.error('Error loading vehicle rentals:', err);
         } finally {
@@ -195,6 +204,19 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
         setActiveTab('new-rental');
     };
 
+    const handleCompleteRental = async (id) => {
+        if (window.confirm('¿Estás seguro de que deseas marcar esta renta como completada? El vehículo volverá a estar disponible.')) {
+            try {
+                await rentalService.complete(id);
+                toast.success('Renta completada exitosamente');
+                loadRentals();
+            } catch (err) {
+                console.error('Error completing rental:', err);
+                toast.error('Error al completar la renta: ' + err.message);
+            }
+        }
+    };
+
     const handleDeleteRental = async (id) => {
         if (window.confirm('¿Estás seguro de que deseas eliminar esta reserva?')) {
             try {
@@ -241,8 +263,17 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
     };
 
     const getTileClassName = ({ date, view }) => {
-        if (view === 'month' && isDateOccupied(date)) {
-            return 'occupied-date';
+        if (view === 'month') {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            if (date < today) {
+                return 'past-date';
+            }
+            
+            if (isDateOccupied(date)) {
+                return 'occupied-date';
+            }
         }
         return null;
     };
@@ -360,7 +391,9 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
 
     const activeRental = scheduledRentals.find(rent => {
         const today = getLocalTodayDate();
-        return rent.status === 'active' && rent.start_date <= today && rent.end_date >= today;
+        const rStart = normalizeDate(rent.start_date);
+        const rEnd = normalizeDate(rent.end_date);
+        return rent.status === 'active' && rStart <= today && rEnd >= today;
     });
 
     const filteredLogs = maintenanceLogs.filter(log =>
@@ -539,6 +572,13 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
                                                 </div>
                                             </div>
                                             <div style={{ display: 'flex', gap: '8px' }}>
+                                                {rent.status === 'active' && (
+                                                    <button 
+                                                        onClick={() => handleCompleteRental(rent.id)}
+                                                        title="Finalizar Renta"
+                                                        style={{ background: 'rgba(16,185,129,0.1)', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer', color: '#10b981' }}
+                                                    ><CheckCircle size={14} /></button>
+                                                )}
                                                 <button 
                                                     onClick={() => handleEditRental(rent)}
                                                     style={{ background: 'rgba(14,165,233,0.1)', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer', color: '#0ea5e9' }}
@@ -559,9 +599,14 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
                 </div>
 
                 <div className="modal-footer" style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--border-color)' }}>
-                    <span className={`status-badge ${vehicle.status}`} style={{ position: 'static' }}>
-                        {vehicle.status === 'available' ? 'Disponible' : vehicle.status === 'rented' ? 'Rentado' : 'Mantenimiento'}
-                    </span>
+                    {(() => {
+                        const effectiveStatus = activeRental ? 'rented' : (vehicle.status === 'rented' ? 'available' : (vehicle.status || 'available'));
+                        return (
+                            <span className={`status-badge ${effectiveStatus}`} style={{ position: 'static' }}>
+                                {effectiveStatus === 'available' ? 'Disponible' : effectiveStatus === 'rented' ? 'Rentado' : 'Mantenimiento'}
+                            </span>
+                        );
+                    })()}
                     <button className="btn-subtle" onClick={onClose}>Cerrar</button>
                 </div>
             </div>

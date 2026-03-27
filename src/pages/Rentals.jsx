@@ -33,24 +33,44 @@ const Rentals = () => {
         
         const today = getLocalTodayDate();
         const startDate = r.start_date ? r.start_date.split('T')[0] : '';
+        const endDate = r.end_date ? r.end_date.split('T')[0] : '';
         
         if (statusFilter === 'active') {
-            return searchMatch && r.status === 'active' && startDate <= today;
+            // Realmente activa: estado activo, empezó ya y NO ha terminado.
+            return searchMatch && r.status === 'active' && startDate <= today && endDate >= today;
         }
         if (statusFilter === 'reserved') {
+            // Reservada: estado activo pero empieza en el futuro.
             return searchMatch && r.status === 'active' && startDate > today;
+        }
+        if (statusFilter === 'completed') {
+            // Completada: estado completado O estado activo pero ya terminó.
+            return searchMatch && (r.status === 'completed' || (r.status === 'active' && endDate < today));
         }
         return searchMatch && r.status === statusFilter;
     }).sort((a, b) => {
         const today = getLocalTodayDate();
-        const aIsActive = a.status === 'active' && a.start_date.split('T')[0] <= today;
-        const bIsActive = b.status === 'active' && b.start_date.split('T')[0] <= today;
-        const aIsReserved = a.status === 'active' && a.start_date.split('T')[0] > today;
-        const bIsReserved = b.status === 'active' && b.start_date.split('T')[0] > today;
+        
+        const getEffectiveOrder = (r) => {
+            const start = r.start_date ? r.start_date.split('T')[0] : '';
+            const end = r.end_date ? r.end_date.split('T')[0] : '';
+            
+            if (r.status === 'active') {
+                if (start <= today && end >= today) return 0; // Activa
+                if (start > today) return 1;                  // Reservada
+                return 2;                                     // Terminada (Auto)
+            }
+            if (r.status === 'completed') return 2;
+            return 3; // Cancelada u otros
+        };
 
-        // Active first, then reserved, then completed
-        const getOrder = (isActive, isReserved) => isActive ? 0 : isReserved ? 1 : 2;
-        return getOrder(aIsActive, aIsReserved) - getOrder(bIsActive, bIsReserved);
+        const orderA = getEffectiveOrder(a);
+        const orderB = getEffectiveOrder(b);
+
+        if (orderA !== orderB) return orderA - orderB;
+        
+        // Secondary sort: most recent end date first
+        return new Date(b.end_date) - new Date(a.end_date);
     });
 
     const handleCompleteRental = async (id) => {

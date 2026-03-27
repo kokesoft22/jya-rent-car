@@ -37,3 +37,23 @@ export const getDaysDiff = (date1Str, date2Str) => {
     const diffTime = d2Obj - d1Obj;
     return Math.round(diffTime / (1000 * 60 * 60 * 24));
 };
+
+/**
+ * Normalizes a date string to YYYY-MM-DD format.
+ * Handles: 
+ * - DD/MM/YYYY
+ * - YYYY-MM-DD
+ * - ISO strings (YYYY-MM-DDTHH:mm:ss...)
+ */
+export const normalizeDate = (dateStr) => {
+    if (!dateStr) return '';
+    if (typeof dateStr !== 'string') return dateStr;
+    
+    if (dateStr.includes('/')) {
+        const [d, m, y] = dateStr.split('/');
+        return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+    }
+    
+    // Handle ISO strings or YYYY-MM-DD
+    return dateStr.split('T')[0];
+};

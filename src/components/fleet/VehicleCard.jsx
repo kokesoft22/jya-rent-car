@@ -3,9 +3,9 @@ import { Car, Calendar, AlertTriangle, MoreVertical, Edit2, Trash2, Eye, Clock }
 import { rentalService } from '../../services/rentalService';
 import { formatDateSafe, getLocalTodayDate, getDaysDiff } from '../../utils/dateUtils';
 
-export const VehicleCard = ({ vehicle, onEdit, onDelete, onView }) => {
-    const [currentStatus, setCurrentStatus] = useState(vehicle.status);
-    const [activeRental, setActiveRental] = useState(null);
+export const VehicleCard = ({ vehicle, onEdit, onDelete, onView, currentRental }) => {
+    const [currentStatus, setCurrentStatus] = useState(vehicle.effectiveStatus || vehicle.status);
+    const [activeRental, setActiveRental] = useState(currentRental || null);
     const [nextRental, setNextRental] = useState(null);
 
     useEffect(() => {
@@ -19,7 +19,10 @@ export const VehicleCard = ({ vehicle, onEdit, onDelete, onView }) => {
                     setActiveRental(activeRentalData);
                     setNextRental(null);
                 } else {
-                    setCurrentStatus(vehicle.status || 'available');
+                    // Si no hay renta activa para HOY, el vehículo debería estar disponible
+                    // a menos que esté en mantenimiento. Esto soluciona problemas de estados desincronizados.
+                    const fallbackStatus = vehicle.status === 'rented' ? 'available' : (vehicle.status || 'available');
+                    setCurrentStatus(fallbackStatus);
                     setActiveRental(null);
                     const nextR = await rentalService.getNextRental(vehicle.id);
                     setNextRental(nextR);
@@ -29,7 +32,7 @@ export const VehicleCard = ({ vehicle, onEdit, onDelete, onView }) => {
             }
         };
         checkStatus();
-    }, [vehicle]);
+    }, [vehicle, currentRental, vehicle.effectiveStatus]);
 
     return (
         <div className="glass-card vehicle-card">
