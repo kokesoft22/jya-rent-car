@@ -186,18 +186,16 @@ const RentalRow = ({ rental, onComplete, onDelete, onPayment, onEdit }) => {
                                         overflow: 'hidden'
                                     }}
                                 >
-                                    {balance > 0 && (
-                                        <button
-                                            className="dropdown-item payment"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                onPayment(rental);
-                                                setShowMenu(false);
-                                            }}
-                                        >
-                                            <DollarSign size={14} /> Registrar Pago
-                                        </button>
-                                    )}
+                                    <button
+                                        className="dropdown-item payment"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onPayment(rental);
+                                            setShowMenu(false);
+                                        }}
+                                    >
+                                        <DollarSign size={14} /> Registrar Pago
+                                    </button>
                                     <button
                                         className="dropdown-item"
                                         onClick={(e) => {

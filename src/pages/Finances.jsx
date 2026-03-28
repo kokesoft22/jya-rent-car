@@ -12,7 +12,8 @@ import {
     PieChart as PieIcon,
     Calendar,
     ChevronRight,
-    Trash2
+    Trash2,
+    Edit2
 } from 'lucide-react';
 import { 
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -21,6 +22,7 @@ import {
 import { useFinances, useDeleteExpense } from '../hooks/useFinances';
 import { useVehicles } from '../hooks/useVehicles';
 import AddExpenseModal from '../components/finances/AddExpenseModal';
+import EditExpenseModal from '../components/finances/EditExpenseModal';
 import '../components/Finances.css';
 import { getLocalTodayDate } from '../utils/dateUtils';
 
@@ -81,6 +83,7 @@ const FinanceCard = ({ title, amount, icon: Icon, trend, color, label }) => (
 const Finances = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+    const [editingExpense, setEditingExpense] = useState(null);
     const { data: financesData, isLoading, error } = useFinances();
     const { data: vehicles } = useVehicles();
     const deleteExpenseMutation = useDeleteExpense();
@@ -249,7 +252,7 @@ const Finances = () => {
                 <div className="card-header-with-actions">
                     <div className="title-with-icon">
                         <TableIcon size={20} className="text-primary" />
-                        <h3>Gastos Recientes</h3>
+                        <h3>Listado de Gastos</h3>
                     </div>
                     <div className="table-filters">
                         <div className="search-bar">
@@ -274,7 +277,6 @@ const Finances = () => {
                                 <th>Descripción</th>
                                 <th>Categoría</th>
                                 <th>Monto</th>
-                                <th>Estado</th>
                                 <th style={{ width: '50px' }}></th>
                             </tr>
                         </thead>
@@ -304,12 +306,23 @@ const Finances = () => {
                                             <div className="flex-cell text-white font-medium">
                                                 {(() => {
                                                     if (!exp.description) return '';
+                                                    // Clean prefix
                                                     let d = exp.description.replace(/^Mantenimiento:\s*/i, '');
+                                                    
+                                                    // Handle new format with model in parenthesis at the end
+                                                    if (d.includes(' (') && d.endsWith(')')) {
+                                                        const lastIndex = d.lastIndexOf(' (');
+                                                        d = d.substring(0, lastIndex).trim();
+                                                    }
+                                                    
+                                                    // Handle old format or other cases with model name
                                                     if (exp.vehicles?.model) {
                                                         const escapedModel = exp.vehicles.model.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                                                         d = d.replace(new RegExp(escapedModel, 'i'), '');
                                                     }
-                                                    return d.replace(/^[\-\s\:]+/, '').trim();
+                                                    
+                                                    // Final trim of separators
+                                                    return d.replace(/^[\-\s\:\(\)]+/, '').replace(/[\-\s\:\(\)]+$/, '').trim();
                                                 })()}
                                             </div>
                                         </td>
@@ -325,19 +338,29 @@ const Finances = () => {
                                                 -${parseFloat(exp.amount).toLocaleString()}
                                             </div>
                                         </td>
+
                                         <td>
-                                            <div className="flex-cell">
-                                                <span className="status-badge paid">Pagado</span>
+                                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                                                <button
+                                                    className="btn-icon"
+                                                    style={{ padding: '6px', color: '#06bcf9' }}
+                                                    onClick={() => setEditingExpense(exp)}
+                                                    title="Editar gasto"
+                                                >
+                                                    <Edit2 size={14} />
+                                                </button>
+                                                <button 
+                                                    className="btn-delete-small"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDelete(exp.id);
+                                                    }}
+                                                    title="Eliminar gasto"
+                                                    aria-label="Eliminar gasto"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
                                             </div>
-                                        </td>
-                                        <td>
-                                            <button 
-                                                className="btn-delete-small"
-                                                onClick={() => handleDelete(exp.id)}
-                                                title="Eliminar registro"
-                                            >
-                                                <Trash2 size={14} />
-                                            </button>
                                         </td>
                                     </tr>
                                 ))
@@ -354,6 +377,12 @@ const Finances = () => {
             <AddExpenseModal 
                 isOpen={isExpenseModalOpen} 
                 onClose={() => setIsExpenseModalOpen(false)} 
+                vehicles={vehicles}
+            />
+            <EditExpenseModal
+                isOpen={!!editingExpense}
+                onClose={() => setEditingExpense(null)}
+                expense={editingExpense}
                 vehicles={vehicles}
             />
         </div>

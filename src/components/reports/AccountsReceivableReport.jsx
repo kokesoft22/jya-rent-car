@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Loader, ArrowLeft, Search, Phone, FileText, User } from 'lucide-react';
+import { Loader, ArrowLeft, Search, Phone, FileText, User, DollarSign } from 'lucide-react';
 import { useAccountsReceivable } from '../../hooks/useReportsData';
+import PaymentModal from '../rentals/PaymentModal';
 import '../Reports.css';
 
 const AccountsReceivableReport = ({ onBack }) => {
-    const { data, isLoading, error } = useAccountsReceivable();
+    const { data, isLoading, error, refetch } = useAccountsReceivable();
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedRental, setSelectedRental] = useState(null);
 
     if (isLoading) {
         return (
@@ -25,7 +27,7 @@ const AccountsReceivableReport = ({ onBack }) => {
         return sum + debt;
     }, 0) || 0;
 
-    const filteredData = (data || []).filter(r => 
+    const filteredData = (data || []).filter(r =>
         r.customers?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         r.vehicles?.model?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         r.vehicles?.license_plate?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -53,9 +55,9 @@ const AccountsReceivableReport = ({ onBack }) => {
                 <div className="w-full md:w-1/3">
                     <div className="search-bar w-full">
                         <Search size={18} />
-                        <input 
-                            type="text" 
-                            placeholder="Buscar por cliente o vehículo..." 
+                        <input
+                            type="text"
+                            placeholder="Buscar por cliente o vehículo..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full"
@@ -72,9 +74,10 @@ const AccountsReceivableReport = ({ onBack }) => {
                                 <th>Cliente</th>
                                 <th>Vehículo</th>
                                 <th>Fechas</th>
-                                <th className="text-right">Monto Total</th>
-                                <th className="text-right">Abonado</th>
-                                <th className="text-right">Pendiente</th>
+                                <th style={{ textAlign: 'center' }}>Monto Total</th>
+                                <th style={{ textAlign: 'center' }}>Abonado</th>
+                                <th style={{ textAlign: 'center' }}>Pendiente</th>
+                                <th style={{ textAlign: 'center' }}>Acción</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -83,7 +86,7 @@ const AccountsReceivableReport = ({ onBack }) => {
                                     const total = parseFloat(r.total_amount || 0);
                                     const paid = parseFloat(r.amount_paid || 0);
                                     const debt = total - paid;
-                                    
+
                                     return (
                                         <tr key={r.id}>
                                             <td>
@@ -108,23 +111,32 @@ const AccountsReceivableReport = ({ onBack }) => {
                                                     {new Date(r.end_date).toLocaleDateString()}
                                                 </div>
                                             </td>
-                                            <td className="text-right font-medium">
+                                            <td style={{ textAlign: 'center', fontWeight: '500' }}>
                                                 ${total.toLocaleString()}
                                             </td>
-                                            <td className="text-right text-success font-medium">
+                                            <td style={{ textAlign: 'center', color: 'var(--success)', fontWeight: '500' }}>
                                                 ${paid.toLocaleString()}
                                             </td>
-                                            <td className="text-right">
+                                            <td style={{ textAlign: 'center' }}>
                                                 <span className="font-bold text-danger bg-danger/10 px-3 py-1 rounded-full">
                                                     ${debt.toLocaleString()}
                                                 </span>
+                                            </td>
+                                            <td style={{ textAlign: 'center' }}>
+                                                <button
+                                                    className="btn-primary-small"
+                                                    style={{ whiteSpace: 'nowrap' }}
+                                                    onClick={() => setSelectedRental(r)}
+                                                >
+                                                    <DollarSign size={13} /> Registrar Pago
+                                                </button>
                                             </td>
                                         </tr>
                                     );
                                 })
                             ) : (
                                 <tr>
-                                    <td colSpan="6" className="text-center py-20 text-muted">
+                                    <td colSpan="7" className="text-center py-20 text-muted">
                                         <div className="flex flex-col items-center gap-3">
                                             <FileText size={40} className="opacity-50" />
                                             {searchTerm ? 'No se encontraron resultados para la búsqueda.' : 'No hay cuentas por cobrar pendientes. ¡Excelente!'}
@@ -136,6 +148,16 @@ const AccountsReceivableReport = ({ onBack }) => {
                     </table>
                 </div>
             </div>
+
+            <PaymentModal
+                rental={selectedRental}
+                isOpen={!!selectedRental}
+                onClose={() => setSelectedRental(null)}
+                onPaymentSaved={() => {
+                    refetch();
+                    setSelectedRental(null);
+                }}
+            />
         </div>
     );
 };

@@ -13,7 +13,7 @@ export const useVehicleMaintenanceLogs = (vehicleId) => {
 export const useAddMaintenanceLog = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: maintenanceService.create,
+    mutationFn: (log) => maintenanceService.create(log),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['maintenance', 'vehicle', variables.vehicle_id] });
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
@@ -47,7 +47,7 @@ export const useUpdateMaintenanceLog = () => {
 export const useDeleteMaintenanceLog = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: maintenanceService.delete,
+    mutationFn: (id) => maintenanceService.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['maintenance'] });
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });

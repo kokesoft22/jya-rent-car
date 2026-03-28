@@ -126,11 +126,11 @@ export const expenseService = {
     async getVehicleProfitability() {
         const { data: vehicles } = await supabase.from('vehicles').select('id, model, license_plate');
         const { data: rentals } = await supabase.from('rentals').select('vehicle_id, amount_paid');
-        const { data: expenses } = await supabase.from('expenses').select('vehicle_id, amount');
+        const { data: expenses } = await supabase.from('maintenance_logs').select('vehicle_id, cost');
 
         const profitability = (vehicles || []).map(v => {
             const vIncome = (rentals || []).filter(r => r.vehicle_id === v.id).reduce((sum, r) => sum + parseFloat(r.amount_paid || 0), 0);
-            const vExpenses = (expenses || []).filter(e => e.vehicle_id === v.id).reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
+            const vExpenses = (expenses || []).filter(e => e.vehicle_id === v.id).reduce((sum, e) => sum + parseFloat(e.cost || 0), 0);
             return {
                 id: v.id,
                 model: v.model,
@@ -142,6 +142,15 @@ export const expenseService = {
         });
 
         return profitability.sort((a, b) => b.netProfit - a.netProfit);
+    },
+
+    async update(id, data) {
+        const { error } = await supabase
+            .from('expenses')
+            .update(data)
+            .eq('id', id);
+        if (error) throw error;
+        return true;
     },
 
     async delete(id) {
@@ -162,17 +171,33 @@ export const expenseService = {
 
         if (deleteExpError) throw deleteExpError;
 
-        // 3. If it's a maintenance expense, try to delete the record in maintenance_logs
-        if (expense && expense.category === 'maintenance' && expense.vehicle_id) {
+        // 3. If it has a vehicle_id, try to delete the matching record in maintenance_logs
+        if (expense && expense.vehicle_id) {
             // We search for a log that matches date, vehicle and cost
-            // We use ilike to match the description part since the expense description
-            // was constructed as "Mantenimiento: [Model] - [Log Description]"
-            
-            // First, let's extract the possible original description if it follows our pattern
             let originalDesc = expense.description;
+            
+            // Handle multiple formats:
+            // 1. Mantenimiento: [Desc] ([Model]) -> New format
+            // 2. Mantenimiento: [Model] - [Desc] -> Old format
+            
+            // Clean "Mantenimiento: " prefix if present
+            originalDesc = originalDesc.replace(/^Mantenimiento:\s*/i, '');
+            
+            // Handle Old format with " - "
             if (originalDesc.includes(' - ')) {
                 originalDesc = originalDesc.split(' - ').slice(1).join(' - ');
             }
+            
+            // Handle New format where model is in a parenthesis at the end
+            // e.g. "Cambio de Correa (Honda Civic 2024)" -> "Cambio de Correa"
+            if (originalDesc.includes(' (')) {
+                const parts = originalDesc.split(' (');
+                if (parts.length > 1) {
+                    originalDesc = parts[0].trim();
+                }
+            }
+
+            console.log(`[SYNC DELETE] Extracted desc: "${originalDesc}" from expense: "${expense.description}"`);
 
             const { error: logError } = await supabase
                 .from('maintenance_logs')
@@ -180,7 +205,7 @@ export const expenseService = {
                 .eq('vehicle_id', expense.vehicle_id)
                 .eq('date', expense.expense_date)
                 .eq('cost', expense.amount)
-                .ilike('description', `%${originalDesc}%`);
+                .or(`description.ilike.%${originalDesc}%, description.ilike.%${expense.description}%`);
 
             if (logError) {
                 console.error('Could not delete associated maintenance log:', logError);

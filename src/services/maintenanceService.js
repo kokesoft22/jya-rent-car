@@ -14,7 +14,6 @@ export const maintenanceService = {
 
     async create(log, skipExpense = false) {
         // 1. Create maintenance log
-        // Note: We use the provided category if it exists, otherwise default to maintenance
         const logData = { ...log };
         const { data, error } = await supabase
             .from('maintenance_logs')
@@ -24,29 +23,56 @@ export const maintenanceService = {
         if (error) throw error;
 
         // 2. Update vehicle's last maintenance date and mileage if needed
-        await maintenanceService.updateVehicleFromLog(log);
+        try {
+            await maintenanceService.updateVehicleFromLog(log);
+        } catch (updateErr) {
+            console.warn('[MAINT] Error updating vehicle from log:', updateErr);
+        }
 
         // 3. If cost > 0 and not skipping, create an expense record
-        if (!skipExpense && parseFloat(log.cost) > 0) {
-            const { data: vehicle } = await supabase
-                .from('vehicles')
-                .select('model')
-                .eq('id', log.vehicle_id)
-                .single();
+        const costValue = parseFloat(log.cost);
+        
+        if (!skipExpense && costValue > 0) {
+            try {
+                const { data: vehicle } = await supabase
+                    .from('vehicles')
+                    .select('model')
+                    .eq('id', log.vehicle_id)
+                    .single();
 
-            const expense = {
-                expense_date: log.date,
-                category: log.category || 'maintenance',
-                description: `Mantenimiento: ${vehicle?.model || 'Vehículo'} - ${log.description}`,
-                amount: log.cost,
-                vehicle_id: log.vehicle_id
-            };
+                const expense = {
+                    expense_date: log.date,
+                    category: log.category || 'maintenance',
+                    description: `Mantenimiento: ${log.description} (${vehicle?.model || 'Vehículo'})`,
+                    amount: costValue,
+                    vehicle_id: log.vehicle_id
+                };
 
-            await supabase.from('expenses').insert([expense]);
+
+                const { data: insertedExpense, error: expenseError } = await supabase
+                    .from('expenses')
+                    .insert([expense])
+                    .select();
+
+                if (expenseError) {
+                    // Retry with refreshed session
+                    await supabase.auth.refreshSession();
+                    const { error: retryError } = await supabase
+                        .from('expenses')
+                        .insert([expense]);
+                    
+                    if (retryError) {
+                        console.error('[SYNC ERROR] Retry falló:', retryError);
+                    }
+                }
+            } catch (syncErr) {
+                console.error('[SYNC EXCEPTION]:', syncErr);
+            }
         }
 
         return data[0];
     },
+
 
     async updateVehicleFromLog(log) {
         const desc = log.description.toLowerCase();
@@ -192,16 +218,16 @@ export const maintenanceService = {
 
         // 3. Delete the associated expense if it exists
         if (log && log.cost > 0) {
-            // Search by vehicle_id, amount, date and category instead of exact description match
-            // This is more robust in case the vehicle model name changes
+            // We search for an expense that matches vehicle_id, amount and date.
+            // We are more flexible with the description and category to ensure 
+            // bidirectional sync even if categories were changed.
             const { error: expError } = await supabase
                 .from('expenses')
                 .delete()
                 .eq('vehicle_id', log.vehicle_id)
                 .eq('amount', log.cost)
                 .eq('expense_date', log.date)
-                .eq('category', 'maintenance')
-                .ilike('description', `%${log.description}%`);
+                .or(`description.ilike.%${log.description}%, description.ilike.%Mantenimiento: ${log.description}%`);
 
             if (expError) console.error('Could not delete associated expense:', expError);
         }

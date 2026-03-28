@@ -1,0 +1,4 @@
+Starting check data...
+Vehicles count: 0
+Expenses count: 0
+Logs count: 12

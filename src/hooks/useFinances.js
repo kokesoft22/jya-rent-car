@@ -38,6 +38,21 @@ export const useAddExpense = () => {
         }
     });
 };
+export const useUpdateExpense = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, data }) => expenseService.update(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['finances'] });
+            queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+            queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+        },
+        onError: (error) => {
+            console.error('Error al actualizar gasto:', error);
+        }
+    });
+};
+
 export const useDeleteExpense = () => {
     const queryClient = useQueryClient();
     return useMutation({
