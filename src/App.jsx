@@ -22,6 +22,8 @@ import './App.css';
 import { getLocalTodayDate } from './utils/dateUtils';
 
 // Componentes temporales para secciones pendientes
+const APP_VERSION = '1.0.2-sync-fix';
+console.log(`JyA Rent Car Version: ${APP_VERSION}`);
 import Dashboard from './pages/Dashboard';
 import './components/Dashboard.css';
 import Fleet from './pages/Fleet';
@@ -289,6 +291,7 @@ const HeaderActions = ({ notifications, onLogout, userEmail }) => {
   );
 };
 
+// Sync comment to force HMR for navigation labels
 const SidebarNav = ({ onAction }) => {
   const location = useLocation();
   const currentPath = location.pathname;

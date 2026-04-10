@@ -61,8 +61,8 @@ export const useDashboardStats = () => {
             const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
             const { data: chartRentals } = await supabase
                 .from('rentals')
-                .select('total_amount, start_date')
-                .gte('start_date', sixMonthsAgo.toISOString());
+                .select('total_amount, created_at')
+                .gte('created_at', sixMonthsAgo.toISOString());
 
             const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
             const chartData = [];
@@ -80,7 +80,7 @@ export const useDashboardStats = () => {
                 const y = d.getFullYear();
                 let income = (chartRentals || [])
                     .filter(r => {
-                        const rd = new Date(r.start_date);
+                        const rd = new Date(r.created_at);
                         return rd.getMonth() === m && rd.getFullYear() === y;
                     })
                     .reduce((acc, curr) => acc + parseFloat(curr.total_amount), 0);

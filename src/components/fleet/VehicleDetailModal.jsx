@@ -451,6 +451,7 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
                     </div>
 
                     <div className="maintenance-section-container">
+                        {/* Sync comment to force tab label update */}
                         <div className="detail-tabs" style={{ display: 'flex', gap: '8px', marginBottom: '20px', borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '0 16px' }}>
                             <button className={`tab-btn ${activeTab === 'maintenance' ? 'active' : ''}`} onClick={() => { setActiveTab('maintenance'); setEditingRentalId(null); setEditingLogId(null); }} style={{ padding:'12px', background:'none', border:'none', color:activeTab==='maintenance'?'#0ea5e9':'#94a3b8', borderBottom:activeTab==='maintenance'?'2px solid #0ea5e9':'none', cursor:'pointer' }}>Gastos del Vehículo</button>
                             <button className={`tab-btn ${activeTab === 'agenda' ? 'active' : ''}`} onClick={() => { setActiveTab('agenda'); setEditingRentalId(null); setEditingLogId(null); }} style={{ padding:'12px', background:'none', border:'none', color:activeTab==='agenda'?'#0ea5e9':'#94a3b8', borderBottom:activeTab==='agenda'?'2px solid #0ea5e9':'none', cursor:'pointer' }}>Agenda</button>
