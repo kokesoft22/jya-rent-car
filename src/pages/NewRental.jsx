@@ -16,9 +16,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useNavigate } from 'react-router-dom';
 import { vehicleService } from '../services/vehicleService';
-import { customerService } from '../services/customerService';
-import { rentalService } from '../services/rentalService';
 import { useAddRental } from '../hooks/useRentals';
+import { useAddCustomer } from '../hooks/useCustomers';
 import { toast } from 'sonner';
 import { Calendar as ReactCalendar } from 'react-calendar';
 import { formatDateSafe, getLocalTodayDate } from '../utils/dateUtils';
@@ -47,6 +46,9 @@ const NewRental = () => {
     const [scheduledRentals, setScheduledRentals] = useState([]);
     const [showCalendar, setShowCalendar] = useState(false);
     const [loadingRentals, setLoadingRentals] = useState(false);
+    
+    const addRentalMutation = useAddRental();
+    const addCustomerMutation = useAddCustomer();
 
     const {
         register,
@@ -198,7 +200,7 @@ const NewRental = () => {
             if (existingCustomer) {
                 customerId = existingCustomer.id;
             } else {
-                const newCustomer = await customerService.create({
+                const newCustomer = await addCustomerMutation.mutateAsync({
                     full_name: data.customer_name,
                     id_number: data.customer_id_number,
                     phone: data.customer_phone
@@ -218,7 +220,7 @@ const NewRental = () => {
             }
 
             // 3. Create rental
-            await rentalService.create({
+            await addRentalMutation.mutateAsync({
                 vehicle_id: data.vehicle_id,
                 customer_id: customerId,
                 start_date: data.start_date,
@@ -229,10 +231,10 @@ const NewRental = () => {
                 status: 'active'
             });
 
-            toast.success('Renta creada exitosamente');
+            // toast.success is handled by hooks
             navigate('/rentals');
         } catch (err) {
-            toast.error('Error al crear renta: ' + err.message);
+            console.error('Error creating rental:', err);
         } finally {
             setLoading(false);
         }

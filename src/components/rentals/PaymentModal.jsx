@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { DollarSign, X, Loader } from 'lucide-react';
-import { rentalService } from '../../services/rentalService';
-import { toast } from 'sonner';
+import { useAddPayment } from '../../hooks/useRentals';
 
 const PaymentModal = ({ rental, isOpen, onClose, onPaymentSaved }) => {
     const [amount, setAmount] = useState('');
-    const [loading, setLoading] = useState(false);
+    
+    const addPaymentMutation = useAddPayment();
+    const loading = addPaymentMutation.isLoading;
 
     if (!isOpen || !rental) return null;
 
@@ -16,20 +17,15 @@ const PaymentModal = ({ rental, isOpen, onClose, onPaymentSaved }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         const payAmount = parseFloat(amount);
-        if (!payAmount || payAmount <= 0) return toast.error('Ingresa un monto válido.');
-        if (payAmount > balance) return toast.error(`El monto no puede exceder el pendiente ($${balance.toLocaleString()}).`);
+        if (!payAmount || payAmount <= 0) return;
+        if (payAmount > balance) return;
 
         try {
-            setLoading(true);
-            await rentalService.addPayment(rental.id, payAmount);
-            toast.success('Pago registrado con éxito');
-            onPaymentSaved();
+            await addPaymentMutation.mutateAsync({ id: rental.id, amount: payAmount });
             onClose();
             setAmount('');
         } catch (err) {
-            toast.error('Error al registrar pago: ' + err.message);
-        } finally {
-            setLoading(false);
+            console.error('Error submitting payment:', err);
         }
     };
 
@@ -38,16 +34,11 @@ const PaymentModal = ({ rental, isOpen, onClose, onPaymentSaved }) => {
         if (balance <= 0) return;
 
         try {
-            setLoading(true);
-            await rentalService.addPayment(rental.id, balance);
-            toast.success('Pago completo registrado');
-            onPaymentSaved();
+            await addPaymentMutation.mutateAsync({ id: rental.id, amount: balance });
             onClose();
             setAmount('');
         } catch (err) {
-            toast.error('Error al registrar pago completo: ' + err.message);
-        } finally {
-            setLoading(false);
+            console.error('Error paying all:', err);
         }
     };
 

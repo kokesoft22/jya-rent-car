@@ -3,8 +3,7 @@ import { X, Save, Loader } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { toast } from 'sonner';
-import { customerService } from '../../services/customerService';
+import { useAddCustomer } from '../../hooks/useCustomers';
 
 const customerSchema = z.object({
     full_name: z.string().min(3, "El nombre debe tener al menos 3 caracteres"),
@@ -18,7 +17,7 @@ const AddCustomerModal = ({ isOpen, onClose, onCustomerAdded }) => {
         register,
         handleSubmit,
         reset,
-        formState: { errors, isSubmitting }
+        formState: { errors }
     } = useForm({
         resolver: zodResolver(customerSchema),
         defaultValues: {
@@ -28,6 +27,9 @@ const AddCustomerModal = ({ isOpen, onClose, onCustomerAdded }) => {
             email: ''
         }
     });
+
+    const addCustomerMutation = useAddCustomer();
+    const loading = addCustomerMutation.isLoading;
 
     useEffect(() => {
         if (!isOpen) {
@@ -39,13 +41,11 @@ const AddCustomerModal = ({ isOpen, onClose, onCustomerAdded }) => {
 
     const onSubmit = async (data) => {
         try {
-            await customerService.create(data);
-            toast.success('Cliente añadido con éxito');
+            await addCustomerMutation.mutateAsync(data);
             onCustomerAdded();
             onClose();
         } catch (err) {
             console.error(err);
-            toast.error('Error al añadir cliente: ' + err.message);
         }
     };
 
@@ -103,9 +103,9 @@ const AddCustomerModal = ({ isOpen, onClose, onCustomerAdded }) => {
 
                     <div className="modal-footer">
                         <button type="button" className="btn-subtle" onClick={onClose}>Cancelar</button>
-                        <button type="submit" className="btn-primary" disabled={isSubmitting}>
-                            {isSubmitting ? <Loader className="animate-spin" size={18} /> : <Save size={18} />}
-                            <span>{isSubmitting ? 'Guardando...' : 'Guardar Cliente'}</span>
+                        <button type="submit" className="btn-primary" disabled={loading}>
+                            {loading ? <Loader className="animate-spin" size={18} /> : <Save size={18} />}
+                            <span>{loading ? 'Guardando...' : 'Guardar Cliente'}</span>
                         </button>
                     </div>
                 </form>

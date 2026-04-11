@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { vehicleService } from '../../services/vehicleService';
+import { useAddVehicle } from '../../hooks/useVehicles';
 import { toast } from 'sonner';
 
 const vehicleSchema = z.object({
@@ -39,6 +40,8 @@ const AddVehicleModal = ({ isOpen, onClose, onVehicleAdded }) => {
     const [loading, setLoading] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [previews, setPreviews] = useState([]);
+    
+    const addVehicleMutation = useAddVehicle();
 
     const {
         register,
@@ -104,17 +107,16 @@ const AddVehicleModal = ({ isOpen, onClose, onVehicleAdded }) => {
                 imageUrl = await vehicleService.uploadImage(selectedFiles[0]);
             }
 
-            await vehicleService.create({
+            await addVehicleMutation.mutateAsync({
                 ...formattedData,
                 image_url: imageUrl
             });
 
-            toast.success('Vehículo creado exitosamente');
             onVehicleAdded();
             onClose();
         } catch (err) {
             console.error('Error creating vehicle:', err);
-            toast.error('Error al añadir vehículo: ' + (err.message || 'Error desconocido'));
+            // Error handling is managed by the mutation hook
         } finally {
             setLoading(false);
         }

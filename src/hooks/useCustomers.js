@@ -16,6 +16,7 @@ export const useAddCustomer = () => {
     mutationFn: customerService.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       toast.success('Cliente registrado exitosamente');
     },
     onError: (error) => {
@@ -30,6 +31,7 @@ export const useUpdateCustomer = () => {
     mutationFn: ({ id, data }) => customerService.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       toast.success('Cliente actualizado exitosamente');
     },
     onError: (error) => {
@@ -44,6 +46,7 @@ export const useDeleteCustomer = () => {
     mutationFn: customerService.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       toast.success('Cliente eliminado');
     },
     onError: (error) => {

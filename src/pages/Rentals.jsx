@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Plus, AlertTriangle } from 'lucide-react';
-import { useRentals, useDeleteRental } from '../hooks/useRentals';
+import { useRentals, useDeleteRental, useUpdateRental } from '../hooks/useRentals';
 import { rentalService } from '../services/rentalService';
 import RentalRow from '../components/rentals/RentalRow';
 import PaymentModal from '../components/rentals/PaymentModal';
@@ -13,6 +13,7 @@ import { getLocalTodayDate } from '../utils/dateUtils';
 const Rentals = () => {
     const { data: rentals = [], isLoading, error, refetch } = useRentals();
     const deleteRentalMutation = useDeleteRental();
+    const updateRentalMutation = useUpdateRental();
 
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
@@ -76,11 +77,12 @@ const Rentals = () => {
     const handleCompleteRental = async (id) => {
         if (window.confirm('¿Estás seguro de que deseas marcar esta renta como completada? El vehículo volverá a estar disponible.')) {
             try {
-                await rentalService.complete(id);
-                toast.success('Renta completada exitosamente');
-                refetch();
+                await updateRentalMutation.mutateAsync({ 
+                    id, 
+                    data: { status: 'completed' } 
+                });
             } catch (err) {
-                toast.error('Error al completar renta: ' + err.message);
+                console.error('Error completing rental:', err);
             }
         }
     };

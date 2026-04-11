@@ -15,6 +15,7 @@ export const useAddVehicle = () => {
     mutationFn: vehicleService.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       toast.success('Vehículo creado exitosamente');
     },
     onError: (error) => {
@@ -29,6 +30,7 @@ export const useUpdateVehicle = () => {
     mutationFn: ({ id, data }) => vehicleService.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       toast.success('Vehículo actualizado exitosamente');
     },
     onError: (error) => {
@@ -43,6 +45,7 @@ export const useDeleteVehicle = () => {
     mutationFn: vehicleService.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       toast.success('Vehículo eliminado exitosamente');
     },
     onError: (error) => {

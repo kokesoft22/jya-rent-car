@@ -32,7 +32,8 @@ export const useAddRental = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['rentals'] });
       queryClient.invalidateQueries({ queryKey: ['rentals', 'vehicle', variables.vehicle_id] });
-      queryClient.invalidateQueries({ queryKey: ['vehicles'] }); // Refresh vehicle status
+      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       toast.success('Reserva creada exitosamente');
     },
     onError: (error) => {
@@ -47,7 +48,8 @@ export const useUpdateRental = () => {
     mutationFn: ({ id, data }) => rentalService.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['rentals'] });
-      queryClient.invalidateQueries({ queryKey: ['vehicles'] }); // In case status changed
+      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       toast.success('Reserva actualizada exitosamente');
     },
     onError: (error) => {
@@ -63,10 +65,26 @@ export const useDeleteRental = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['rentals'] });
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       toast.success('Reserva eliminada');
     },
     onError: (error) => {
       toast.error(`Error al eliminar reserva: ${error.message}`);
+    },
+  });
+};
+
+export const useAddPayment = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, amount }) => rentalService.addPayment(id, amount),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['rentals'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      toast.success('Pago registrado con éxito');
+    },
+    onError: (error) => {
+      toast.error(`Error al registrar pago: ${error.message}`);
     },
   });
 };

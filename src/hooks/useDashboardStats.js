@@ -66,14 +66,6 @@ export const useDashboardStats = () => {
 
             const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
             const chartData = [];
-            // Mock data for presentation: November, December, January, February
-            const mockData = {
-                10: 850,   // Nov
-                11: 1420,  // Dic
-                0: 2150,   // Ene
-                1: 1150    // Feb (dipped down)
-            };
-            
             for (let i = 5; i >= 0; i--) {
                 const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
                 const m = d.getMonth();
@@ -84,11 +76,6 @@ export const useDashboardStats = () => {
                         return rd.getMonth() === m && rd.getFullYear() === y;
                     })
                     .reduce((acc, curr) => acc + parseFloat(curr.total_amount), 0);
-                
-                // Add mock data if this month has no real income
-                if (income === 0 && mockData[m]) {
-                    income = mockData[m];
-                }
                 
                 chartData.push({ name: monthNames[m], income });
             }
@@ -143,6 +130,6 @@ export const useDashboardStats = () => {
                 returningSoon: returningSoon || []
             };
         },
-        staleTime: 5 * 60 * 1000, // 5 minutes cache
+        staleTime: 0, // No cache to ensure real-time updates after mutations
     });
 };

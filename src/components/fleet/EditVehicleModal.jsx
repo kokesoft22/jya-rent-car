@@ -3,8 +3,7 @@ import { X, Save, Loader, Upload, AlertCircle } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { vehicleService } from '../../services/vehicleService';
-import { toast } from 'sonner';
+import { useUpdateVehicle } from '../../hooks/useVehicles';
 
 const vehicleSchema = z.object({
     model: z.string().min(2, 'El modelo es obligatorio (mínimo 2 caracteres)'),
@@ -36,9 +35,11 @@ const vehicleSchema = z.object({
 
 export const EditVehicleModal = ({ vehicle, isOpen, onClose, onSaved }) => {
     const fileInputRef = useRef(null);
-    const [loading, setLoading] = useState(false);
     const [newImage, setNewImage] = useState(null);
     const [preview, setPreview] = useState(null);
+
+    const updateVehicleMutation = useUpdateVehicle();
+    const loading = updateVehicleMutation.isLoading;
 
     const {
         register,
@@ -79,8 +80,6 @@ export const EditVehicleModal = ({ vehicle, isOpen, onClose, onSaved }) => {
 
     const onSubmit = async (data) => {
         try {
-            setLoading(true);
-
             // Convert empty date strings to null for Supabase
             const formattedData = {
                 ...data,
@@ -90,17 +89,19 @@ export const EditVehicleModal = ({ vehicle, isOpen, onClose, onSaved }) => {
 
             let imageUrl = vehicle.image_url;
             if (newImage) {
+                const { vehicleService } = await import('../../services/vehicleService');
                 imageUrl = await vehicleService.uploadImage(newImage);
             }
-            await vehicleService.update(vehicle.id, { ...formattedData, image_url: imageUrl });
-            toast.success('Vehículo actualizado exitosamente');
+            
+            await updateVehicleMutation.mutateAsync({ 
+                id: vehicle.id, 
+                data: { ...formattedData, image_url: imageUrl } 
+            });
+            
             onSaved();
             onClose();
         } catch (err) {
             console.error('Error updating vehicle:', err);
-            toast.error('Error al actualizar vehículo: ' + (err.message || 'Error desconocido'));
-        } finally {
-            setLoading(false);
         }
     };
 
