@@ -3,9 +3,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { supabase } from '../lib/supabase';
-import { LogIn, Mail, Lock, Loader } from 'lucide-react';
+import { LogIn, Mail, Lock, Loader, Eye, EyeOff } from 'lucide-react';
 import logo from '../assets/logo.png';
 import { toast } from 'sonner';
+import { useState } from 'react';
 import '../components/Login.css';
 
 const loginSchema = z.object({
@@ -14,6 +15,7 @@ const loginSchema = z.object({
 });
 
 const Login = () => {
+  const [showPassword, setShowPassword] = useState(false);
   const {
     register,
     handleSubmit,
@@ -72,10 +74,19 @@ const Login = () => {
               <Lock className="input-icon" size={20} />
               <input
                 id="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="********"
                 {...register('password')}
+                style={{ paddingRight: '45px' }}
               />
+              <button
+                type="button"
+                className="password-toggle-btn"
+                onClick={() => setShowPassword(!showPassword)}
+                tabIndex="-1"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
             </div>
             {errors.password && <span className="text-xs text-danger mt-1">{errors.password.message}</span>}
           </div>
