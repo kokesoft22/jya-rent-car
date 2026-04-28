@@ -16,6 +16,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useNavigate } from 'react-router-dom';
 import { vehicleService } from '../services/vehicleService';
+import { rentalService } from '../services/rentalService';
+import { customerService } from '../services/customerService';
 import { useAddRental } from '../hooks/useRentals';
 import { useAddCustomer } from '../hooks/useCustomers';
 import { toast } from 'sonner';

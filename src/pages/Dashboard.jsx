@@ -21,6 +21,7 @@ import {
 } from 'recharts';
 import { useDashboardStats } from '../hooks/useDashboardStats';
 import StatCard from '../components/dashboard/StatCard';
+import { getLocalTodayDate, getDaysDiff } from '../utils/dateUtils';
 import '../components/Dashboard.css';
 
 const COLORS = ['#06bcf9', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
@@ -168,10 +169,10 @@ const Dashboard = () => {
                     <div className="maintenance-list">
                         {returningSoon && returningSoon.length > 0 ? (
                             returningSoon.map(rental => {
+                                const endDateStr = rental.end_date ? rental.end_date.split('T')[0] : '';
                                 const endDate = new Date(rental.end_date);
-                                const today = new Date();
-                                const diffTime = endDate.getTime() - today.getTime();
-                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                const todayStr = getLocalTodayDate();
+                                const diffDays = getDaysDiff(todayStr, endDateStr);
                                 
                                 let urgencyClass = '';
                                 let urgencyText = '';

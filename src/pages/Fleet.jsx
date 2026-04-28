@@ -17,7 +17,7 @@ const Fleet = () => {
     const today = getLocalTodayDate();
     const { data: activeRentals = [] } = useActiveRentals(today);
 
-    console.log('FLEET DATA:', vehicles);
+
 
     const [filter, setFilter] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');

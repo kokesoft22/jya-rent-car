@@ -21,9 +21,6 @@ import { supabase } from './lib/supabase';
 import './App.css';
 import { getLocalTodayDate } from './utils/dateUtils';
 
-// Componentes temporales para secciones pendientes
-const APP_VERSION = '1.0.2-sync-fix';
-console.log(`JyA Rent Car Version: ${APP_VERSION}`);
 import Dashboard from './pages/Dashboard';
 import './components/Dashboard.css';
 import Fleet from './pages/Fleet';
@@ -40,6 +37,9 @@ import Reports from './pages/Reports';
 import './components/Reports.css';
 import Login from './pages/Login';
 import './components/Login.css';
+
+const APP_VERSION = '1.0.3-audit-fix';
+console.log(`JyA Rent Car Version: ${APP_VERSION}`);
 
 const SidebarItem = ({ icon: Icon, label, to, active, onAction }) => (
   <Link to={to} className={`sidebar-item ${active ? 'active' : ''}`} onClick={onAction}>
