@@ -22,7 +22,7 @@ import { useAddRental } from '../hooks/useRentals';
 import { useAddCustomer } from '../hooks/useCustomers';
 import { toast } from 'sonner';
 import { Calendar as ReactCalendar } from 'react-calendar';
-import { formatDateSafe, getLocalTodayDate } from '../utils/dateUtils';
+import { formatDateSafe, getLocalTodayDate, getDaysDiff } from '../utils/dateUtils';
 import 'react-calendar/dist/Calendar.css';
 
 const rentalFormSchema = z.object({
@@ -139,8 +139,20 @@ const NewRental = () => {
     };
 
     const getTileClassName = ({ date, view }) => {
-        if (view === 'month' && isDateOccupied(date)) {
-            return 'occupied-date';
+        if (view === 'month') {
+            const todayStr = getLocalTodayDate();
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            const dateStr = `${y}-${m}-${d}`;
+            
+            if (dateStr < todayStr) {
+                return 'past-date';
+            }
+            
+            if (isDateOccupied(date)) {
+                return 'occupied-date';
+            }
         }
         return null;
     };
@@ -160,10 +172,7 @@ const NewRental = () => {
 
     const calculateDays = () => {
         if (watchedStartDate && watchedEndDate) {
-            const s = new Date(watchedStartDate);
-            const e = new Date(watchedEndDate);
-            const diffTime = e - s;
-            return Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+            return getDaysDiff(watchedStartDate, watchedEndDate) + 1;
         }
         return 0;
     };

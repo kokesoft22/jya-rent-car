@@ -6,7 +6,7 @@ import { customerService } from '../../services/customerService';
 import { useVehicleMaintenanceLogs, useAddMaintenanceLog, useUpdateMaintenanceLog, useDeleteMaintenanceLog } from '../../hooks/useMaintenance';
 import { toast } from 'sonner';
 import { Calendar as ReactCalendar } from 'react-calendar';
-import { formatDateSafe, getLocalTodayDate, normalizeDate } from '../../utils/dateUtils';
+import { formatDateSafe, getLocalTodayDate, normalizeDate, getDaysDiff } from '../../utils/dateUtils';
 import 'react-calendar/dist/Calendar.css';
 
 export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
@@ -147,9 +147,7 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
                 customerId = newCustomer.id;
             }
 
-            const s = new Date(rentalForm.start_date);
-            const eDate = new Date(rentalForm.end_date);
-            const diffDays = Math.ceil(Math.abs(eDate - s) / (1000 * 60 * 60 * 24)) || 1;
+            const diffDays = getDaysDiff(rentalForm.start_date, rentalForm.end_date) + 1;
             const pricePerDay = rentalForm.price_per_day !== undefined ? parseFloat(rentalForm.price_per_day) || 0 : (vehicle.daily_rate || 0);
             const totalAmount = diffDays * pricePerDay;
             const amountPaid = parseFloat(rentalForm.amount_paid) || 0;
@@ -264,10 +262,13 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
 
     const getTileClassName = ({ date, view }) => {
         if (view === 'month') {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            const todayStr = getLocalTodayDate();
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            const dateStr = `${y}-${m}-${d}`;
             
-            if (date < today) {
+            if (dateStr < todayStr) {
                 return 'past-date';
             }
             
@@ -280,7 +281,7 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
 
     const renderNewRentalTab = () => {
         const diffDays = (rentalForm.start_date && rentalForm.end_date)
-            ? Math.ceil(Math.abs(new Date(rentalForm.end_date + 'T00:00:00') - new Date(rentalForm.start_date + 'T00:00:00')) / (1000 * 60 * 60 * 24))
+            ? getDaysDiff(rentalForm.start_date, rentalForm.end_date) + 1
             : 0;
         const pricePerDay = rentalForm.price_per_day !== undefined ? parseFloat(rentalForm.price_per_day) || 0 : (vehicle?.daily_rate || 0);
         const totalAmount = diffDays * pricePerDay;
