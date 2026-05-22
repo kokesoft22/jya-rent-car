@@ -60,7 +60,7 @@ const RentalRow = ({ rental, onComplete, onDelete, onPayment, onEdit }) => {
     const start = parseDateFixed(rental.start_date);
     const end = parseDateFixed(rental.end_date);
 
-    const totalDays = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)));
+    const totalDays = Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1);
     let daysElapsed = 0;
     if (today > start) {
         const diff = Math.ceil((today - start) / (1000 * 60 * 60 * 24));
