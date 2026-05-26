@@ -55,7 +55,7 @@ const Dashboard = () => {
             </div>
 
             <div className="stats-grid">
-                <StatCard title="Vehículos Disponibles" value={`${stats.fleetAvailable}/${stats.fleetTotal} vehículos`} icon={Car} trend={stats.fleetTotal > 0 ? `${Math.round((stats.fleetAvailable / stats.fleetTotal) * 100)}% disponible` : null} color="#3b82f6" />
+                <StatCard title="Vehículos Disponibles" value={`${stats.fleetAvailable} ${stats.fleetAvailable === 1 ? 'vehículo' : 'vehículos'}`} icon={Car} trend={stats.fleetTotal > 0 ? `${Math.round((stats.fleetAvailable / stats.fleetTotal) * 100)}% disponible` : null} color="#3b82f6" />
                 <StatCard title="Vehículos Rentados" value={`${stats.activeRentals} ${stats.activeRentals === 1 ? 'vehículo' : 'vehículos'}`} icon={Key} trend={stats.fleetTotal > 0 ? `${Math.round((stats.activeRentals / stats.fleetTotal) * 100)}% rentado` : null} color="#06bcf9" />
                 <StatCard title="Ingreso Promedio / Vehículo" value={`$${Math.round(stats.avgIncomePerVehicle).toLocaleString()}`} icon={TrendingUp} trend="Rendimiento total" color="#8b5cf6" />
             </div>
