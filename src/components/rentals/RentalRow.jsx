@@ -62,8 +62,8 @@ const RentalRow = ({ rental, onComplete, onDelete, onPayment, onEdit }) => {
 
     const totalDays = Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1);
     let daysElapsed = 0;
-    if (today > start) {
-        const diff = Math.ceil((today - start) / (1000 * 60 * 60 * 24));
+    if (today >= start) {
+        const diff = Math.round((today - start) / (1000 * 60 * 60 * 24)) + 1;
         daysElapsed = Math.min(totalDays, diff);
     }
     const daysRemaining = Math.max(0, totalDays - daysElapsed);

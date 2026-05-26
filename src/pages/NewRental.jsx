@@ -14,7 +14,7 @@ import {
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { vehicleService } from '../services/vehicleService';
 import { rentalService } from '../services/rentalService';
 import { customerService } from '../services/customerService';
@@ -39,6 +39,7 @@ const rentalFormSchema = z.object({
 
 const NewRental = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [step, setStep] = useState(1);
     const [vehicles, setVehicles] = useState([]);
     const [loadingVehicles, setLoadingVehicles] = useState(true);
@@ -84,6 +85,15 @@ const NewRental = () => {
     useEffect(() => {
         loadVehicles();
     }, []);
+
+    useEffect(() => {
+        if (location.state?.client) {
+            const client = location.state.client;
+            setValue('customer_name', client.full_name || '');
+            setValue('customer_id_number', client.id_number || '');
+            setValue('customer_phone', client.phone || '');
+        }
+    }, [location.state, setValue]);
 
     const loadVehicles = async () => {
         try {

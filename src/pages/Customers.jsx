@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Users, Search, UserPlus, AlertTriangle } from 'lucide-react';
 import { useCustomers, useDeleteCustomer } from '../hooks/useCustomers';
 import CustomerRow from '../components/customers/CustomerRow';
@@ -9,6 +10,7 @@ import CustomerDetailsModal from '../components/customers/CustomerDetailsModal';
 import '../components/Customers.css';
 
 const Customers = () => {
+    const navigate = useNavigate();
     const { data: customers = [], isLoading, error, refetch } = useCustomers();
     const deleteCustomerMutation = useDeleteCustomer();
 
@@ -105,6 +107,7 @@ const Customers = () => {
                                         onEdit={handleEditCustomer}
                                         onDelete={handleDeleteCustomer}
                                         onViewDetails={handleViewDetails}
+                                        onNewRental={(cust) => navigate('/new-rental', { state: { client: cust } })}
                                     />
                                 ))
                             ) : (

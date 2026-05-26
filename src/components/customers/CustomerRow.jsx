@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { CreditCard, Phone, Mail, MoreVertical, Edit2, Trash2, History } from 'lucide-react';
+import { CreditCard, Phone, Mail, MoreVertical, Edit2, Trash2, History, Plus } from 'lucide-react';
 
-const CustomerRow = ({ customer, onEdit, onDelete, onViewDetails }) => {
+const CustomerRow = ({ customer, onEdit, onDelete, onViewDetails, onNewRental }) => {
     const [showMenu, setShowMenu] = useState(false);
 
     return (
@@ -43,6 +43,12 @@ const CustomerRow = ({ customer, onEdit, onDelete, onViewDetails }) => {
                         <>
                             <div className="menu-backdrop" onClick={() => setShowMenu(false)}></div>
                             <div className="actions-dropdown">
+                                <button className="dropdown-item" onClick={() => {
+                                    setShowMenu(false);
+                                    if(onNewRental) onNewRental(customer);
+                                }}>
+                                    <Plus size={14} /> Nueva Renta
+                                </button>
                                 <button className="dropdown-item" onClick={() => {
                                     setShowMenu(false);
                                     if(onViewDetails) onViewDetails(customer);

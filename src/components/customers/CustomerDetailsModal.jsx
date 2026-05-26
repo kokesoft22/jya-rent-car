@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, User, Phone, Mail, Calendar, Car, DollarSign, Clock } from 'lucide-react';
 import { useCustomerRentals } from '../../hooks/useCustomers';
+import { getDaysDiff } from '../../utils/dateUtils';
 
 const CustomerDetailsModal = ({ isOpen, onClose, customer }) => {
     const { data: rentals, isLoading, error } = useCustomerRentals(customer?.id);
@@ -106,7 +107,19 @@ const CustomerDetailsModal = ({ isOpen, onClose, customer }) => {
                                                 <div className="flex items-center gap-1"><Calendar size={12}/> {formatDate(rental.end_date)}</div>
                                             </td>
                                             <td className="p-4 text-white font-medium">
-                                                ${parseFloat(rental.total_amount || 0).toLocaleString()}
+                                                <div className="text-sm font-semibold">${parseFloat(rental.total_amount || 0).toLocaleString()}</div>
+                                                {(() => {
+                                                    const start = rental.start_date.split('T')[0];
+                                                    const end = rental.end_date.split('T')[0];
+                                                    const days = getDaysDiff(start, end) + 1;
+                                                    const total = parseFloat(rental.total_amount || 0);
+                                                    const pricePerDay = days > 0 ? (total / days) : 0;
+                                                    return (
+                                                        <div className="text-xs text-gray-400 font-normal mt-0.5">
+                                                            {days} {days === 1 ? 'día' : 'días'} x ${Number(pricePerDay.toFixed(0)).toLocaleString()}
+                                                        </div>
+                                                    );
+                                                })()}
                                             </td>
                                             <td className="p-4">
                                                 {getStatusBadge(rental.status)}

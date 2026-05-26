@@ -175,7 +175,8 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
 
             setRentalForm({
                 customer_name: '', customer_id_number: '', customer_phone: '',
-                start_date: '', end_date: '', amount_paid: 0, payment_status: 'pending'
+                start_date: '', end_date: '', amount_paid: 0, payment_status: 'pending',
+                price_per_day: undefined
             });
             setEditingRentalId(null);
             setActiveTab('agenda');
@@ -189,14 +190,21 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
     };
 
     const handleEditRental = (rent) => {
+        const start = rent.start_date.split('T')[0];
+        const end = rent.end_date.split('T')[0];
+        const diffDays = getDaysDiff(start, end) + 1;
+        const total = parseFloat(rent.total_amount || 0);
+        const calculatedPricePerDay = diffDays > 0 ? (total / diffDays) : 0;
+
         setRentalForm({
             customer_name: rent.customers?.full_name || '',
             customer_id_number: rent.customers?.id_number || '',
             customer_phone: rent.customers?.phone || '',
-            start_date: rent.start_date.split('T')[0],
-            end_date: rent.end_date.split('T')[0],
+            start_date: start,
+            end_date: end,
             amount_paid: rent.amount_paid || 0,
-            payment_status: rent.payment_status || 'pending'
+            payment_status: rent.payment_status || 'pending',
+            price_per_day: calculatedPricePerDay
         });
         setEditingRentalId(rent.id);
         setActiveTab('new-rental');
@@ -460,7 +468,14 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
                                 className={`tab-btn ${activeTab === 'new-rental' ? 'active' : ''}`} 
                                 onClick={() => {
                                     setActiveTab('new-rental');
-                                    if (activeTab !== 'new-rental') setEditingRentalId(null);
+                                    if (activeTab !== 'new-rental') {
+                                        setEditingRentalId(null);
+                                        setRentalForm({
+                                            customer_name: '', customer_id_number: '', customer_phone: '',
+                                            start_date: '', end_date: '', amount_paid: 0, payment_status: 'pending',
+                                            price_per_day: undefined
+                                        });
+                                    }
                                 }} 
                                 style={{ padding:'12px', background:'none', border:'none', color:activeTab==='new-rental'?'#10b981':'#94a3b8', borderBottom:activeTab==='new-rental'?'2px solid #10b981':'none', cursor:'pointer' }}
                             >

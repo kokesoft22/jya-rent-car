@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Car, Calendar, AlertTriangle, MoreVertical, Edit2, Trash2, Eye, Clock } from 'lucide-react';
+import { Car, Calendar, AlertTriangle, Edit2, Trash2, Eye, Clock } from 'lucide-react';
 import { rentalService } from '../../services/rentalService';
 import { formatDateSafe, getLocalTodayDate, getDaysDiff } from '../../utils/dateUtils';
 
@@ -97,7 +97,7 @@ export const VehicleCard = ({ vehicle, onEdit, onDelete, onView, currentRental }
                             })()}
                         </div>
                     </div>
-                    <button className="btn-icon"><MoreVertical size={18} /></button>
+
                 </div>
                 <div className="vehicle-footer">
                     <div className="vehicle-rate">
