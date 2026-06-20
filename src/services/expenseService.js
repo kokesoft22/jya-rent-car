@@ -67,8 +67,8 @@ export const expenseService = {
 
         const { data: rentals } = await supabase
             .from('rentals')
-            .select('amount_paid, created_at, status')
-            .gte('created_at', sixMonthsAgo.toISOString());
+            .select('amount_paid, start_date, status')
+            .gte('start_date', sixMonthsAgo.toISOString());
 
         const { data: expenses } = await supabase
             .from('expenses')
@@ -85,15 +85,19 @@ export const expenseService = {
 
             const monthIncome = (rentals || [])
                 .filter(r => {
-                    const rd = new Date(r.created_at);
-                    return rd.getMonth() === month && rd.getFullYear() === year;
+                    if (!r.start_date) return false;
+                    const datePart = r.start_date.split('T')[0];
+                    const [y, m] = datePart.split('-').map(Number);
+                    return (m - 1) === month && y === year;
                 })
                 .reduce((acc, curr) => acc + parseFloat(curr.amount_paid || 0), 0);
 
             const monthExpenses = (expenses || [])
                 .filter(e => {
-                    const ed = new Date(e.expense_date);
-                    return ed.getMonth() === month && ed.getFullYear() === year;
+                    if (!e.expense_date) return false;
+                    const datePart = e.expense_date.split('T')[0];
+                    const [y, m] = datePart.split('-').map(Number);
+                    return (m - 1) === month && y === year;
                 })
                 .reduce((acc, curr) => acc + parseFloat(curr.amount), 0);
 
