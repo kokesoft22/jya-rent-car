@@ -164,8 +164,8 @@ const Finances = () => {
 
             <div className="finance-stats-grid">
                 <FinanceCard title="Ingresos Totales" amount={summary.income} icon={ArrowUpCircle} label="Total de ingresos" color="#10b981" />
-                <FinanceCard title="Gastos Operativos" amount={summary.expenses} icon={ArrowDownCircle} label="Total Gastado" color="#ef4444" />
-                <FinanceCard title="Utilidad Neta" amount={summary.net} icon={TrendingUp} label="Beneficio Real" color="#8b5cf6" />
+                <FinanceCard title="Gastos Operativos" amount={summary.expenses} icon={ArrowDownCircle} label="Total de Gastos" color="#ef4444" />
+                <FinanceCard title="Utilidad Neta" amount={summary.net} icon={TrendingUp} label="Ingreso Real" color="#8b5cf6" />
                 <FinanceCard title="Pagos Pendientes" amount={summary.pending} icon={DollarSign} label="Por Cobrar" color="#f59e0b" />
             </div>
 
