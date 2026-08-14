@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     Car,
     User,
@@ -19,7 +19,7 @@ import { vehicleService } from '../services/vehicleService';
 import { rentalService } from '../services/rentalService';
 import { customerService } from '../services/customerService';
 import { useAddRental } from '../hooks/useRentals';
-import { useAddCustomer } from '../hooks/useCustomers';
+import { useAddCustomer, useCustomers } from '../hooks/useCustomers';
 import { toast } from 'sonner';
 import { Calendar as ReactCalendar } from 'react-calendar';
 import { formatDateSafe, getLocalTodayDate, getDaysDiff } from '../utils/dateUtils';
@@ -52,6 +52,9 @@ const NewRental = () => {
     
     const addRentalMutation = useAddRental();
     const addCustomerMutation = useAddCustomer();
+    const { data: customersList = [] } = useCustomers();
+    const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+    const customerDropdownRef = useRef(null);
 
     const {
         register,
@@ -81,6 +84,28 @@ const NewRental = () => {
     const watchedDailyRate = useWatch({ control, name: 'custom_daily_rate' });
     const watchedIsReservation = useWatch({ control, name: 'is_reservation' });
     const watchedAmountPaid = useWatch({ control, name: 'amount_paid' });
+    const watchedCustomerName = useWatch({ control, name: 'customer_name' });
+
+    const filteredCustomers = customersList.filter(c => 
+        (c.full_name?.toLowerCase() || '').startsWith((watchedCustomerName || '').toLowerCase())
+    );
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (customerDropdownRef.current && !customerDropdownRef.current.contains(event.target)) {
+                setShowCustomerDropdown(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleSelectCustomer = (customer) => {
+        setValue('customer_name', customer.full_name, { shouldValidate: true });
+        setValue('customer_id_number', customer.id_number, { shouldValidate: true });
+        setValue('customer_phone', customer.phone, { shouldValidate: true });
+        setShowCustomerDropdown(false);
+    };
 
     useEffect(() => {
         loadVehicles();
@@ -98,16 +123,7 @@ const NewRental = () => {
     const loadVehicles = async () => {
         try {
             const data = await vehicleService.getAll();
-            const today = getLocalTodayDate();
-            
-            // Filter out vehicles that are in maintenance or have active rentals today
-            const availableVehicles = await Promise.all(data.map(async (v) => {
-                if (v.status === 'maintenance') return null;
-                const activeRentals = await rentalService.checkAvailability(v.id, today, today);
-                return activeRentals.length === 0 ? v : null;
-            }));
-
-            setVehicles(availableVehicles.filter(v => v !== null));
+            setVehicles(data);
         } catch (err) {
             toast.error('Error cargando vehículos');
         } finally {
@@ -354,9 +370,32 @@ const NewRental = () => {
                     {step === 2 && (
                         <div className="form-step">
                             <h3><User size={20} /> Información del Cliente</h3>
-                            <div className="form-group">
+                            <div className="form-group" style={{ position: 'relative' }} ref={customerDropdownRef}>
                                 <label>Nombre Completo</label>
-                                <input type="text" className="input-field" placeholder="" {...register('customer_name')} />
+                                <input 
+                                    type="text" 
+                                    className="input-field" 
+                                    placeholder="Ingresa o busca un cliente..." 
+                                    {...register('customer_name', {
+                                        onChange: () => setShowCustomerDropdown(true)
+                                    })} 
+                                    onFocus={() => setShowCustomerDropdown(true)}
+                                    autoComplete="off"
+                                />
+                                {showCustomerDropdown && watchedCustomerName && filteredCustomers.length > 0 && (
+                                    <div className="customer-dropdown-menu">
+                                        {filteredCustomers.slice(0, 5).map(c => (
+                                            <div 
+                                                key={c.id} 
+                                                className="customer-dropdown-item"
+                                                onClick={() => handleSelectCustomer(c)}
+                                            >
+                                                <span className="customer-dropdown-name">{c.full_name}</span>
+                                                <span className="customer-dropdown-id">{c.id_number}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                             <div className="form-row">
                                 <div className="form-group">

@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Clock, AlertTriangle, Calendar, User, Edit2, Trash2, Plus, CheckCircle } from 'lucide-react';
 import { maintenanceService } from '../../services/maintenanceService';
 import { rentalService } from '../../services/rentalService';
 import { customerService } from '../../services/customerService';
 import { useVehicleMaintenanceLogs, useAddMaintenanceLog, useUpdateMaintenanceLog, useDeleteMaintenanceLog } from '../../hooks/useMaintenance';
+import { useCustomers } from '../../hooks/useCustomers';
 import { toast } from 'sonner';
 import { Calendar as ReactCalendar } from 'react-calendar';
 import { formatDateSafe, getLocalTodayDate, normalizeDate, getDaysDiff } from '../../utils/dateUtils';
@@ -35,6 +36,34 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
         description: '', cost: '', mileage_at_service: '', date: getLocalTodayDate(),
         category: 'maintenance'
     });
+
+    const { data: customers = [] } = useCustomers();
+    const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+    const customerDropdownRef = useRef(null);
+
+    const filteredCustomers = customers.filter(c => 
+        (c.full_name?.toLowerCase() || '').startsWith((rentalForm.customer_name || '').toLowerCase())
+    );
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (customerDropdownRef.current && !customerDropdownRef.current.contains(event.target)) {
+                setShowCustomerDropdown(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleSelectCustomer = (customer) => {
+        setRentalForm({
+            ...rentalForm,
+            customer_name: customer.full_name,
+            customer_id_number: customer.id_number,
+            customer_phone: customer.phone
+        });
+        setShowCustomerDropdown(false);
+    };
 
     const CATEGORY_MAP = {
         maintenance: 'Mantenimiento',
@@ -298,9 +327,35 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
 
         return (
         <form onSubmit={handleNewRental} className="modal-form" style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div className="form-group">
+            <div className="form-group" style={{ position: 'relative' }} ref={customerDropdownRef}>
                 <label style={{ fontSize: '12px', color: '#94a3b8' }}>Nombre Completo</label>
-                <input type="text" className="input-field" required value={rentalForm.customer_name} onChange={(e) => setRentalForm({...rentalForm, customer_name: e.target.value})} style={{ fontSize: '13px', padding: '10px' }} />
+                <input 
+                    type="text" 
+                    className="input-field" 
+                    required 
+                    value={rentalForm.customer_name} 
+                    onChange={(e) => {
+                        setRentalForm({...rentalForm, customer_name: e.target.value});
+                        setShowCustomerDropdown(true);
+                    }}
+                    onFocus={() => setShowCustomerDropdown(true)}
+                    style={{ fontSize: '13px', padding: '10px' }} 
+                    autoComplete="off"
+                />
+                {showCustomerDropdown && rentalForm.customer_name && filteredCustomers.length > 0 && (
+                    <div className="customer-dropdown-menu">
+                        {filteredCustomers.slice(0, 5).map(c => (
+                            <div 
+                                key={c.id} 
+                                className="customer-dropdown-item"
+                                onClick={() => handleSelectCustomer(c)}
+                            >
+                                <span className="customer-dropdown-name">{c.full_name}</span>
+                                <span className="customer-dropdown-id">{c.id_number}</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
             <div className="form-row" style={{ display: 'flex', gap: '10px' }}>
                 <div className="form-group" style={{ flex: 1 }}>
