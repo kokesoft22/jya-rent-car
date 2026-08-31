@@ -170,7 +170,11 @@ const Dashboard = () => {
                         {returningSoon && returningSoon.length > 0 ? (
                             returningSoon.map(rental => {
                                 const endDateStr = rental.end_date ? rental.end_date.split('T')[0] : '';
-                                const endDate = new Date(rental.end_date);
+                                let endDate = new Date();
+                                if (endDateStr) {
+                                    const [y, m, d] = endDateStr.split('-').map(Number);
+                                    endDate = new Date(y, m - 1, d);
+                                }
                                 const todayStr = getLocalTodayDate();
                                 const diffDays = getDaysDiff(todayStr, endDateStr);
                                 
