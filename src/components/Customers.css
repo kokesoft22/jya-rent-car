@@ -781,7 +781,7 @@
 }
 
 .customer-rental-history-table .history-period-column {
-    width: 34%;
+    width: 24%;
 }
 
 .customer-rental-history-table .history-days-column {
@@ -789,11 +789,11 @@
 }
 
 .customer-rental-history-table .history-total-column {
-    width: 12%;
+    width: 13%;
 }
 
 .customer-rental-history-table .history-status-column {
-    width: 17%;
+    width: 26%;
 }
 
 .customer-rental-history-table th,
