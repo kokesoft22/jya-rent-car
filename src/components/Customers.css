@@ -112,6 +112,7 @@
 .avatar-small {
     width: 40px;
     height: 40px;
+    flex: 0 0 40px;
     background: linear-gradient(135deg, var(--accent-blue), #2563eb);
     border-radius: 12px;
     display: flex;
@@ -154,6 +155,27 @@
 
     .customers-table {
         min-width: 600px;
+    }
+
+    .customers-table td:nth-child(2),
+    .customers-table td:nth-child(3) {
+        white-space: nowrap;
+    }
+
+    .customers-table .icon-text-cell > svg,
+    .customers-table td:nth-child(2) svg {
+        flex-shrink: 0;
+    }
+
+    .user-info-cell {
+        gap: 12px;
+    }
+
+    .avatar-small {
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        min-height: 40px;
     }
 }
 
@@ -738,6 +760,149 @@
     border-radius: 8px;
     color: var(--text-muted);
     font-size: 13px;
+}
+
+.history-table-container {
+    width: 100%;
+    max-height: 350px;
+    overflow: auto;
+}
+
+.customer-rental-history-table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.875rem;
+}
+
+.customer-rental-history-table .history-vehicle-column {
+    width: 25%;
+}
+
+.customer-rental-history-table .history-period-column {
+    width: 34%;
+}
+
+.customer-rental-history-table .history-days-column {
+    width: 12%;
+}
+
+.customer-rental-history-table .history-total-column {
+    width: 12%;
+}
+
+.customer-rental-history-table .history-status-column {
+    width: 17%;
+}
+
+.customer-rental-history-table th,
+.customer-rental-history-table td {
+    padding: 12px;
+    text-align: left;
+    vertical-align: middle;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.customer-rental-history-table th {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.customer-rental-history-table tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.history-vehicle-name,
+.history-period {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.history-period-dates {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.history-vehicle-name {
+    color: white;
+    font-weight: 500;
+}
+
+.history-vehicle-name svg,
+.history-period svg {
+    flex: 0 0 auto;
+}
+
+.history-vehicle-plate {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+.history-period,
+.customer-rental-history-table td:nth-child(3),
+.customer-rental-history-table .history-total {
+    white-space: nowrap;
+}
+
+.history-period {
+    font-size: 0.75rem;
+    color: #d1d5db;
+}
+
+.customer-rental-history-table .history-total {
+    color: white;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .customer-rental-history-table {
+        min-width: 560px;
+    }
+
+    .customer-rental-history-table .history-vehicle-column {
+        width: 27%;
+    }
+
+    .customer-rental-history-table .history-period-column {
+        width: 26%;
+    }
+
+    .customer-rental-history-table .history-days-column {
+        width: 12%;
+    }
+
+    .customer-rental-history-table .history-total-column {
+        width: 13%;
+    }
+
+    .customer-rental-history-table .history-status-column {
+        width: 22%;
+    }
+
+    .customer-rental-history-table th,
+    .customer-rental-history-table td {
+        padding: 12px;
+    }
+
+    .history-period {
+        align-items: flex-start;
+    }
+
+    .history-period-dates {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+    }
+
+    .history-period-separator {
+        display: none;
+    }
 }
 
 /* ========================================

@@ -414,11 +414,24 @@
 
 @media (max-width: 1024px) {
     .rental-form-container {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
     
     .rental-summary {
         order: -1;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    .summary-details .detail {
+        min-width: 0;
+        gap: 12px;
+    }
+
+    .summary-details .detail .value {
+        min-width: 0;
+        overflow-wrap: anywhere;
+        text-align: right;
     }
 }
 

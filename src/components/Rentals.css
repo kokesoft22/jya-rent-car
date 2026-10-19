@@ -467,13 +467,6 @@
         /* Líneas conectoras más cortas */
     }
 
-    /* Ajustes generales del modal_header para móvil */
-    .modal-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
-    }
-
     .modal-header h2 {
         font-size: 1.25rem;
     }

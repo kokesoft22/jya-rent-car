@@ -140,44 +140,55 @@ const CustomerDetailsModal = ({ isOpen, onClose, customer }) => {
                                 Este cliente no tiene rentas registradas aún.
                             </div>
                         ) : (
-                            <div className="history-table-container overflow-x-auto max-h-[350px]">
-                                <table className="w-full text-left border-collapse text-sm">
+                            <div className="history-table-container">
+                                <table className="customer-rental-history-table">
+                                    <colgroup>
+                                        <col className="history-vehicle-column" />
+                                        <col className="history-period-column" />
+                                        <col className="history-days-column" />
+                                        <col className="history-total-column" />
+                                        <col className="history-status-column" />
+                                    </colgroup>
                                     <thead>
-                                        <tr className="border-b border-white/10 text-muted uppercase text-xs tracking-wider">
-                                            <th className="p-3">Vehículo</th>
-                                            <th className="p-3">Período</th>
-                                            <th className="p-3">Días</th>
-                                            <th className="p-3">Total</th>
-                                            <th className="p-3">Estado</th>
+                                        <tr>
+                                            <th>Vehículo</th>
+                                            <th>Fecha</th>
+                                            <th>Días</th>
+                                            <th>Total</th>
+                                            <th>Estado</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-white/5">
+                                    <tbody>
                                         {rentals.map((rental) => {
                                             const days = getDaysDiff(rental.start_date, rental.end_date) + 1;
                                             return (
-                                                <tr key={rental.id} className="hover:bg-white/[0.02] transition-colors">
-                                                    <td className="p-3">
-                                                        <div className="font-medium text-white flex items-center gap-2">
+                                                <tr key={rental.id}>
+                                                    <td>
+                                                        <div className="history-vehicle-name">
                                                             <Car size={16} className="text-primary" />
                                                             {rental.vehicles?.model || 'Vehículo desconocido'}
                                                         </div>
-                                                        <div className="text-xs text-muted">
+                                                        <div className="history-vehicle-plate">
                                                             {rental.vehicles?.license_plate}
                                                         </div>
                                                     </td>
-                                                    <td className="p-3 text-gray-300">
-                                                        <div className="flex items-center gap-1 text-xs">
+                                                    <td>
+                                                        <div className="history-period">
                                                             <Calendar size={12} className="text-muted" />
-                                                            {formatDate(rental.start_date)} - {formatDate(rental.end_date)}
+                                                            <span className="history-period-dates">
+                                                                <span>{formatDate(rental.start_date)}</span>
+                                                                <span className="history-period-separator">-</span>
+                                                                <span>{formatDate(rental.end_date)}</span>
+                                                            </span>
                                                         </div>
                                                     </td>
-                                                    <td className="p-3 text-gray-300">
+                                                    <td>
                                                         {days} {days === 1 ? 'día' : 'días'}
                                                     </td>
-                                                    <td className="p-3 font-semibold text-white">
+                                                    <td className="history-total">
                                                         ${rental.total_amount?.toLocaleString() || 0}
                                                     </td>
-                                                    <td className="p-3">
+                                                    <td>
                                                         {getStatusBadge(rental.status)}
                                                     </td>
                                                 </tr>

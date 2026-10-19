@@ -28,8 +28,8 @@ export const getDaysDiff = (date1Str, date2Str) => {
     if (!date1Str || !date2Str) return 0;
     
     // Parse as local dates at midnight
-    const [y1, m1, d1] = date1Str.split('-').map(Number);
-    const [y2, m2, d2] = date2Str.split('-').map(Number);
+    const [y1, m1, d1] = date1Str.split('T')[0].split('-').map(Number);
+    const [y2, m2, d2] = date2Str.split('T')[0].split('-').map(Number);
     
     const d1Obj = new Date(y1, m1 - 1, d1);
     const d2Obj = new Date(y2, m2 - 1, d2);
