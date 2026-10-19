@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CreditCard, Phone, MoreVertical, Edit2, Trash2, History, Plus, ShieldAlert, ShieldCheck, Image as ImageIcon } from 'lucide-react';
+import { CreditCard, Phone, MoreVertical, Edit2, Trash2, History, Plus, ShieldAlert, ShieldCheck } from 'lucide-react';
 
 const CustomerRow = ({ customer, onEdit, onDelete, onViewDetails, onNewRental, onBlacklist, onUnblacklist }) => {
     const [showMenu, setShowMenu] = useState(false);
@@ -35,16 +35,6 @@ const CustomerRow = ({ customer, onEdit, onDelete, onViewDetails, onNewRental, o
                         <CreditCard size={14} />
                         <span>{customer.id_number}</span>
                     </div>
-                    {customer.id_document_url && (
-                        <span 
-                            className="doc-attached-badge" 
-                            title="Foto de documento adjunta"
-                            onClick={() => onViewDetails && onViewDetails(customer)}
-                            style={{ cursor: 'pointer' }}
-                        >
-                            <ImageIcon size={11} /> Foto
-                        </span>
-                    )}
                 </div>
             </td>
             <td>
