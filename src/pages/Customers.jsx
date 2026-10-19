@@ -147,13 +147,12 @@ const Customers = () => {
                                 <th>Nombre Completo</th>
                                 <th>Identificación</th>
                                 <th>Teléfono</th>
-                                <th>Email</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             {isLoading ? (
-                                <tr><td colSpan="5" style={{ textAlign: 'center', padding: '40px' }}>Cargando clientes...</td></tr>
+                                <tr><td colSpan="4" style={{ textAlign: 'center', padding: '40px' }}>Cargando clientes...</td></tr>
                             ) : filteredCustomers.length > 0 ? (
                                 filteredCustomers.map(customer => (
                                     <CustomerRow
@@ -168,7 +167,7 @@ const Customers = () => {
                                     />
                                 ))
                             ) : (
-                                <tr><td colSpan="5" style={{ textAlign: 'center', padding: '40px' }}>
+                                <tr><td colSpan="4" style={{ textAlign: 'center', padding: '40px' }}>
                                     {filterMode === 'blacklisted' 
                                         ? 'No hay clientes en lista negra.' 
                                         : 'No hay clientes encontrados.'}

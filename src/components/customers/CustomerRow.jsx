@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CreditCard, Phone, Mail, MoreVertical, Edit2, Trash2, History, Plus, ShieldAlert, ShieldCheck, Image as ImageIcon } from 'lucide-react';
+import { CreditCard, Phone, MoreVertical, Edit2, Trash2, History, Plus, ShieldAlert, ShieldCheck, Image as ImageIcon } from 'lucide-react';
 
 const CustomerRow = ({ customer, onEdit, onDelete, onViewDetails, onNewRental, onBlacklist, onUnblacklist }) => {
     const [showMenu, setShowMenu] = useState(false);
@@ -13,7 +13,13 @@ const CustomerRow = ({ customer, onEdit, onDelete, onViewDetails, onNewRental, o
                         {isBlacklisted ? <ShieldAlert size={18} /> : (customer.full_name?.charAt(0) || '?')}
                     </div>
                     <div className="user-name-cell">
-                        <span>{customer.full_name}</span>
+                        <button
+                            type="button"
+                            className="customer-name-link"
+                            onClick={() => onViewDetails?.(customer)}
+                        >
+                            {customer.full_name}
+                        </button>
                         {isBlacklisted && (
                             <span className="blacklist-badge">
                                 <ShieldAlert size={11} />
@@ -45,12 +51,6 @@ const CustomerRow = ({ customer, onEdit, onDelete, onViewDetails, onNewRental, o
                 <div className="icon-text-cell">
                     <Phone size={14} />
                     <span>{customer.phone || 'N/A'}</span>
-                </div>
-            </td>
-            <td>
-                <div className="icon-text-cell">
-                    <Mail size={14} />
-                    <span>{customer.email || 'N/A'}</span>
                 </div>
             </td>
             <td>

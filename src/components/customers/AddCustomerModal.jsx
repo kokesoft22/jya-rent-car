@@ -11,7 +11,6 @@ const customerSchema = z.object({
     full_name: z.string().min(3, "El nombre debe tener al menos 3 caracteres"),
     id_number: z.string().min(6, "La identificación debe tener al menos 6 caracteres"),
     phone: z.string().optional(),
-    email: z.string().email("Correo electrónico inválido").optional().or(z.literal('')),
 });
 
 const AddCustomerModal = ({ isOpen, onClose, onCustomerAdded }) => {
@@ -30,8 +29,7 @@ const AddCustomerModal = ({ isOpen, onClose, onCustomerAdded }) => {
         defaultValues: {
             full_name: '',
             id_number: '',
-            phone: '',
-            email: ''
+            phone: ''
         }
     });
 
@@ -135,26 +133,14 @@ const AddCustomerModal = ({ isOpen, onClose, onCustomerAdded }) => {
                         {errors.id_number && <span className="error-text" style={{color: 'red', fontSize: '12px'}}>{errors.id_number.message}</span>}
                     </div>
 
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label>Teléfono</label>
-                            <input
-                                type="tel"
-                                className="input-field"
-                                placeholder="Ej. 809-555-0199"
-                                {...register('phone')}
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>Correo Electrónico</label>
-                            <input
-                                type="email"
-                                className={`input-field ${errors.email ? 'error-border' : ''}`}
-                                placeholder="ejemplo@correo.com"
-                                {...register('email')}
-                            />
-                            {errors.email && <span className="error-text" style={{color: 'red', fontSize: '12px'}}>{errors.email.message}</span>}
-                        </div>
+                    <div className="form-group">
+                        <label>Teléfono</label>
+                        <input
+                            type="tel"
+                            className="input-field"
+                            placeholder="Ej. 809-555-0199"
+                            {...register('phone')}
+                        />
                     </div>
 
                     {/* Campo para subir foto del documento de identificación */}

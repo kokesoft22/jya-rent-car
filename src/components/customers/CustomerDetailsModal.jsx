@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, User, Phone, Mail, Calendar, Car, DollarSign, Clock, ShieldAlert, Image, ExternalLink, ZoomIn } from 'lucide-react';
+import { X, User, Phone, Calendar, Car, DollarSign, Clock, ShieldAlert, Image, ExternalLink, ZoomIn } from 'lucide-react';
 import { useCustomerRentals } from '../../hooks/useCustomers';
 import { getDaysDiff } from '../../utils/dateUtils';
 
@@ -61,7 +61,6 @@ const CustomerDetailsModal = ({ isOpen, onClose, customer }) => {
                             <span className="text-xs text-muted block mb-1 uppercase tracking-wider">Contacto</span>
                             <div className="flex flex-col gap-1">
                                 <span className="flex items-center gap-1 text-sm text-gray-300"><Phone size={12} /> {customer.phone || 'N/A'}</span>
-                                <span className="flex items-center gap-1 text-sm text-gray-300"><Mail size={12} /> {customer.email || 'N/A'}</span>
                             </div>
                         </div>
                     </div>
@@ -72,7 +71,24 @@ const CustomerDetailsModal = ({ isOpen, onClose, customer }) => {
                             <span className="section-title">
                                 <Image size={16} /> Documento de Identificación Adjunto
                             </span>
-                            {customer.id_document_url && (
+                        </div>
+
+                        {customer.id_document_url ? (
+                            <>
+                                <div
+                                    className="document-thumbnail-card"
+                                    onClick={() => setLightboxImage(customer.id_document_url)}
+                                >
+                                    <img
+                                        src={customer.id_document_url}
+                                        alt={`Documento de ${customer.full_name}`}
+                                        className="document-thumbnail-img"
+                                    />
+                                    <div className="document-thumbnail-overlay">
+                                        <ZoomIn size={24} />
+                                        <span>Clic para ampliar</span>
+                                    </div>
+                                </div>
                                 <a 
                                     href={customer.id_document_url} 
                                     target="_blank" 
@@ -81,24 +97,7 @@ const CustomerDetailsModal = ({ isOpen, onClose, customer }) => {
                                 >
                                     Abrir en pestaña nueva <ExternalLink size={13} />
                                 </a>
-                            )}
-                        </div>
-
-                        {customer.id_document_url ? (
-                            <div 
-                                className="document-thumbnail-card"
-                                onClick={() => setLightboxImage(customer.id_document_url)}
-                            >
-                                <img 
-                                    src={customer.id_document_url} 
-                                    alt={`Documento de ${customer.full_name}`} 
-                                    className="document-thumbnail-img"
-                                />
-                                <div className="document-thumbnail-overlay">
-                                    <ZoomIn size={24} />
-                                    <span>Clic para ampliar</span>
-                                </div>
-                            </div>
+                            </>
                         ) : (
                             <div className="no-document-card">
                                 <Image size={24} className="text-muted" />
