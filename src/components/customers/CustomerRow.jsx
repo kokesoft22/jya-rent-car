@@ -1,21 +1,44 @@
 import React, { useState } from 'react';
-import { CreditCard, Phone, Mail, MoreVertical, Edit2, Trash2, History, Plus } from 'lucide-react';
+import { CreditCard, Phone, Mail, MoreVertical, Edit2, Trash2, History, Plus, ShieldAlert, ShieldCheck, Image as ImageIcon } from 'lucide-react';
 
-const CustomerRow = ({ customer, onEdit, onDelete, onViewDetails, onNewRental }) => {
+const CustomerRow = ({ customer, onEdit, onDelete, onViewDetails, onNewRental, onBlacklist, onUnblacklist }) => {
     const [showMenu, setShowMenu] = useState(false);
+    const isBlacklisted = customer.is_blacklisted;
 
     return (
-        <tr key={customer.id}>
+        <tr key={customer.id} className={isBlacklisted ? 'blacklisted-row' : ''}>
             <td>
                 <div className="user-info-cell">
-                    <div className="avatar-small">{customer.full_name?.charAt(0) || '?'}</div>
-                    <span>{customer.full_name}</span>
+                    <div className={`avatar-small ${isBlacklisted ? 'avatar-blacklisted' : ''}`}>
+                        {isBlacklisted ? <ShieldAlert size={18} /> : (customer.full_name?.charAt(0) || '?')}
+                    </div>
+                    <div className="user-name-cell">
+                        <span>{customer.full_name}</span>
+                        {isBlacklisted && (
+                            <span className="blacklist-badge">
+                                <ShieldAlert size={11} />
+                                Lista Negra
+                            </span>
+                        )}
+                    </div>
                 </div>
             </td>
             <td>
-                <div className="icon-text-cell">
-                    <CreditCard size={14} />
-                    <span>{customer.id_number}</span>
+                <div className="icon-text-cell" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <CreditCard size={14} />
+                        <span>{customer.id_number}</span>
+                    </div>
+                    {customer.id_document_url && (
+                        <span 
+                            className="doc-attached-badge" 
+                            title="Foto de documento adjunta"
+                            onClick={() => onViewDetails && onViewDetails(customer)}
+                            style={{ cursor: 'pointer' }}
+                        >
+                            <ImageIcon size={11} /> Foto
+                        </span>
+                    )}
                 </div>
             </td>
             <td>
@@ -43,12 +66,14 @@ const CustomerRow = ({ customer, onEdit, onDelete, onViewDetails, onNewRental })
                         <>
                             <div className="menu-backdrop" onClick={() => setShowMenu(false)}></div>
                             <div className="actions-dropdown">
-                                <button className="dropdown-item" onClick={() => {
-                                    setShowMenu(false);
-                                    if(onNewRental) onNewRental(customer);
-                                }}>
-                                    <Plus size={14} /> Nueva Renta
-                                </button>
+                                {!isBlacklisted && (
+                                    <button className="dropdown-item" onClick={() => {
+                                        setShowMenu(false);
+                                        if(onNewRental) onNewRental(customer);
+                                    }}>
+                                        <Plus size={14} /> Nueva Renta
+                                    </button>
+                                )}
                                 <button className="dropdown-item" onClick={() => {
                                     setShowMenu(false);
                                     if(onViewDetails) onViewDetails(customer);
@@ -61,6 +86,29 @@ const CustomerRow = ({ customer, onEdit, onDelete, onViewDetails, onNewRental })
                                 }}>
                                     <Edit2 size={14} /> Editar Cliente
                                 </button>
+
+                                {isBlacklisted ? (
+                                    <button
+                                        className="dropdown-item unblacklist"
+                                        onClick={() => {
+                                            setShowMenu(false);
+                                            if (onUnblacklist) onUnblacklist(customer);
+                                        }}
+                                    >
+                                        <ShieldCheck size={14} /> Quitar de Lista Negra
+                                    </button>
+                                ) : (
+                                    <button
+                                        className="dropdown-item blacklist"
+                                        onClick={() => {
+                                            setShowMenu(false);
+                                            if (onBlacklist) onBlacklist(customer);
+                                        }}
+                                    >
+                                        <ShieldAlert size={14} /> Agregar a Lista Negra
+                                    </button>
+                                )}
+
                                 <button
                                     className="dropdown-item delete"
                                     onClick={() => {

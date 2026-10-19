@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Clock, AlertTriangle, Calendar, User, Edit2, Trash2, Plus, CheckCircle } from 'lucide-react';
+import { X, Clock, AlertTriangle, Calendar, User, Edit2, Trash2, Plus, CheckCircle, UploadCloud, Image as ImageIcon, ExternalLink, ShieldAlert } from 'lucide-react';
 import { maintenanceService } from '../../services/maintenanceService';
 import { rentalService } from '../../services/rentalService';
 import { customerService } from '../../services/customerService';
@@ -17,7 +17,7 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
     const deleteLogMutation = useDeleteMaintenanceLog();
 
     const [scheduledRentals, setScheduledRentals] = useState([]);
-    const [activeTab, setActiveTab] = useState('maintenance');
+    const [activeTab, setActiveTab] = useState('agenda');
     const [showForm, setShowForm] = useState(false);
     const [editingLogId, setEditingLogId] = useState(null);
     const [editingRentalId, setEditingRentalId] = useState(null);
@@ -32,6 +32,40 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
         start_date: '', end_date: '', amount_paid: 0, payment_status: 'pending'
     });
 
+    const [documentFile, setDocumentFile] = useState(null);
+    const [documentPreview, setDocumentPreview] = useState(null);
+    const [existingDocumentUrl, setExistingDocumentUrl] = useState(null);
+    const [isUploadingDoc, setIsUploadingDoc] = useState(false);
+    const docInputRef = useRef(null);
+
+    const handleDocChange = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+            toast.error('Por favor selecciona un archivo de imagen (JPG, PNG, WEBP)');
+            return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            toast.error('La imagen no debe superar los 10MB');
+            return;
+        }
+        setDocumentFile(file);
+        setDocumentPreview(URL.createObjectURL(file));
+    };
+
+    const handleRemoveNewDoc = () => {
+        if (documentPreview) URL.revokeObjectURL(documentPreview);
+        setDocumentFile(null);
+        setDocumentPreview(null);
+        if (docInputRef.current) docInputRef.current.value = '';
+    };
+
+    const handleRemoveExistingDoc = () => {
+        setExistingDocumentUrl(null);
+    };
+
+    const [blacklistedWarning, setBlacklistedWarning] = useState(null);
+
     const [newLog, setNewLog] = useState({
         description: '', cost: '', mileage_at_service: '', date: getLocalTodayDate(),
         category: 'maintenance'
@@ -44,6 +78,31 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
     const filteredCustomers = customers.filter(c => 
         (c.full_name?.toLowerCase() || '').startsWith((rentalForm.customer_name || '').toLowerCase())
     );
+
+    // Auto-detect blacklisted customer when name or ID is typed
+    useEffect(() => {
+        const name = (rentalForm.customer_name || '').trim().toLowerCase();
+        const idNum = (rentalForm.customer_id_number || '').trim().toLowerCase();
+
+        if (!name && !idNum) {
+            setBlacklistedWarning(null);
+            return;
+        }
+
+        const matched = customers.find(c => 
+            (idNum && c.id_number && c.id_number.trim().toLowerCase() === idNum) ||
+            (name && c.full_name && c.full_name.trim().toLowerCase() === name)
+        );
+
+        if (matched && matched.is_blacklisted) {
+            setBlacklistedWarning({
+                name: matched.full_name,
+                reason: matched.blacklist_reason || 'Sin motivo especificado'
+            });
+        } else if (matched && !matched.is_blacklisted) {
+            setBlacklistedWarning(null);
+        }
+    }, [rentalForm.customer_name, rentalForm.customer_id_number, customers]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -63,6 +122,25 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
             customer_phone: customer.phone
         });
         setShowCustomerDropdown(false);
+
+        if (customer.id_document_url) {
+            setExistingDocumentUrl(customer.id_document_url);
+        } else {
+            setExistingDocumentUrl(null);
+        }
+        if (documentPreview) URL.revokeObjectURL(documentPreview);
+        setDocumentFile(null);
+        setDocumentPreview(null);
+        if (docInputRef.current) docInputRef.current.value = '';
+
+        if (customer.is_blacklisted) {
+            setBlacklistedWarning({
+                name: customer.full_name,
+                reason: customer.blacklist_reason || 'Sin motivo especificado'
+            });
+        } else {
+            setBlacklistedWarning(null);
+        }
     };
 
     const CATEGORY_MAP = {
@@ -77,6 +155,7 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
 
     useEffect(() => {
         if (isOpen && vehicle) {
+            setActiveTab('agenda');
             setEditingRentalId(null);
             setEditingLogId(null);
             setShowForm(false);
@@ -155,6 +234,10 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
 
     const handleNewRental = async (e) => {
         e.preventDefault();
+        if (blacklistedWarning) {
+            toast.error(`No se puede rentar: Este cliente está en lista negra (${blacklistedWarning.reason}).`);
+            return;
+        }
         if (availabilityConflicts.length > 0) {
             toast.error('El vehículo tiene conflictos de disponibilidad en ese rango de fechas.');
             return;
@@ -162,16 +245,39 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
 
         try {
             setRentalLoading(true);
+
+            // Upload document if selected
+            let finalDocUrl = existingDocumentUrl;
+            if (documentFile) {
+                setIsUploadingDoc(true);
+                try {
+                    finalDocUrl = await customerService.uploadDocument(documentFile);
+                } catch (uploadErr) {
+                    toast.error('Error al subir documento: ' + uploadErr.message);
+                } finally {
+                    setIsUploadingDoc(false);
+                }
+            }
+
             let customerId;
             const existingCustomer = await customerService.getByIdNumber(rentalForm.customer_id_number);
             
             if (existingCustomer) {
+                if (existingCustomer.is_blacklisted) {
+                    setRentalLoading(false);
+                    return toast.error(`No se puede rentar: Este cliente está en lista negra (${existingCustomer.blacklist_reason || 'Sin motivo especificado'}).`);
+                }
                 customerId = existingCustomer.id;
+                // Update customer if document was uploaded/changed
+                if (finalDocUrl && finalDocUrl !== existingCustomer.id_document_url) {
+                    await customerService.update(existingCustomer.id, { id_document_url: finalDocUrl });
+                }
             } else {
                 const newCustomer = await customerService.create({
                     full_name: rentalForm.customer_name,
                     id_number: rentalForm.customer_id_number,
-                    phone: rentalForm.customer_phone
+                    phone: rentalForm.customer_phone,
+                    id_document_url: finalDocUrl
                 });
                 customerId = newCustomer.id;
             }
@@ -207,6 +313,12 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
                 start_date: '', end_date: '', amount_paid: 0, payment_status: 'pending',
                 price_per_day: undefined
             });
+            if (documentPreview) URL.revokeObjectURL(documentPreview);
+            setDocumentFile(null);
+            setDocumentPreview(null);
+            setExistingDocumentUrl(null);
+            if (docInputRef.current) docInputRef.current.value = '';
+
             setEditingRentalId(null);
             setActiveTab('agenda');
             loadRentals();
@@ -347,16 +459,65 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
                         {filteredCustomers.slice(0, 5).map(c => (
                             <div 
                                 key={c.id} 
-                                className="customer-dropdown-item"
+                                className={`customer-dropdown-item ${c.is_blacklisted ? 'customer-blacklisted' : ''}`}
                                 onClick={() => handleSelectCustomer(c)}
                             >
-                                <span className="customer-dropdown-name">{c.full_name}</span>
-                                <span className="customer-dropdown-id">{c.id_number}</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
+                                    {c.is_blacklisted && <ShieldAlert size={14} style={{ color: '#ef4444', flexShrink: 0 }} />}
+                                    <span className="customer-dropdown-name" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        {c.full_name}
+                                    </span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                                    {c.is_blacklisted && (
+                                        <span style={{ 
+                                            fontSize: '10px', 
+                                            color: '#f87171', 
+                                            fontWeight: 700, 
+                                            textTransform: 'uppercase',
+                                            padding: '2px 6px',
+                                            borderRadius: '4px',
+                                            background: 'rgba(239, 68, 68, 0.15)',
+                                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                                            whiteSpace: 'nowrap',
+                                            flexShrink: 0
+                                        }}>
+                                            Lista Negra
+                                        </span>
+                                    )}
+                                    <span className="customer-dropdown-id" style={{ whiteSpace: 'nowrap', flexShrink: 0, fontWeight: 500 }}>
+                                        {c.id_number}
+                                    </span>
+                                </div>
                             </div>
                         ))}
                     </div>
                 )}
             </div>
+
+            {blacklistedWarning && (
+                <div style={{
+                    display: 'flex', alignItems: 'flex-start', gap: '12px',
+                    padding: '12px 14px', margin: '2px 0 6px',
+                    background: 'rgba(239, 68, 68, 0.08)',
+                    border: '1px solid rgba(239, 68, 68, 0.25)',
+                    borderRadius: '10px',
+                    animation: 'slideInDown 0.3s ease-out'
+                }}>
+                    <ShieldAlert size={20} style={{ color: '#f87171', flexShrink: 0, marginTop: '2px' }} />
+                    <div>
+                        <div style={{ fontSize: '13px', fontWeight: 700, color: '#f87171', marginBottom: '3px' }}>
+                            ⛔ Cliente en Lista Negra
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#94a3b8', lineHeight: 1.4 }}>
+                            <strong style={{ color: '#f8fafc' }}>{blacklistedWarning.name}</strong> está en la lista negra. No se puede realizar una renta a este cliente.
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px', fontStyle: 'italic' }}>
+                            Motivo: "{blacklistedWarning.reason}"
+                        </div>
+                    </div>
+                </div>
+            )}
             <div className="form-row" style={{ display: 'flex', gap: '10px' }}>
                 <div className="form-group" style={{ flex: 1 }}>
                     <label style={{ fontSize: '12px', color: '#94a3b8' }}>ID / Cédula</label>
@@ -366,6 +527,88 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
                     <label style={{ fontSize: '12px', color: '#94a3b8' }}>Teléfono</label>
                     <input type="text" className="input-field" required value={rentalForm.customer_phone} onChange={(e) => setRentalForm({...rentalForm, customer_phone: e.target.value})} style={{ fontSize: '13px', padding: '10px' }} />
                 </div>
+            </div>
+
+            {/* Documento de Identificación */}
+            <div className="form-group">
+                <label style={{ fontSize: '12px', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <ImageIcon size={14} style={{ color: '#3b82f6' }} />
+                    Documento de Identificación (Foto Cédula / Pasaporte)
+                </label>
+
+                <input
+                    type="file"
+                    ref={docInputRef}
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={handleDocChange}
+                />
+
+                {documentPreview ? (
+                    <div className="document-preview-card" style={{ padding: '8px 12px' }}>
+                        <img src={documentPreview} alt="Nueva foto seleccionada" className="document-preview-img" style={{ width: '42px', height: '42px' }} />
+                        <div className="document-preview-info">
+                            <div className="document-filename" style={{ fontSize: '12px' }}>{documentFile?.name || 'nueva_foto.jpg'}</div>
+                            <div className="document-filesize" style={{ color: '#10b981', fontSize: '10px' }}>
+                                Nueva foto para guardar
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            className="btn-remove-doc"
+                            onClick={handleRemoveNewDoc}
+                            title="Cancelar foto"
+                        >
+                            <Trash2 size={14} />
+                        </button>
+                    </div>
+                ) : existingDocumentUrl ? (
+                    <div className="document-preview-card" style={{ padding: '8px 12px' }}>
+                        <img src={existingDocumentUrl} alt="Documento actual" className="document-preview-img" style={{ width: '42px', height: '42px' }} />
+                        <div className="document-preview-info">
+                            <div className="document-filename" style={{ fontSize: '12px' }}>Documento Guardado del Cliente</div>
+                            <a 
+                                href={existingDocumentUrl} 
+                                target="_blank" 
+                                rel="noreferrer"
+                                className="document-view-link"
+                                style={{ fontSize: '10px' }}
+                            >
+                                Ver original <ExternalLink size={11} />
+                            </a>
+                        </div>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                            <button
+                                type="button"
+                                className="btn-subtle"
+                                style={{ padding: '4px 8px', fontSize: '11px' }}
+                                onClick={() => docInputRef.current?.click()}
+                            >
+                                Cambiar
+                            </button>
+                            <button
+                                type="button"
+                                className="btn-remove-doc"
+                                onClick={handleRemoveExistingDoc}
+                                title="Eliminar documento"
+                            >
+                                <Trash2 size={14} />
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    <div 
+                        className="document-upload-zone"
+                        style={{ padding: '14px 12px' }}
+                        onClick={() => docInputRef.current?.click()}
+                    >
+                        <UploadCloud size={24} className="upload-icon" />
+                        <div className="upload-text">
+                            <span className="upload-prompt" style={{ fontSize: '12px' }}>Haz clic para subir o arrastra la foto</span>
+                            <span className="upload-subtext" style={{ fontSize: '10px' }}>JPG, PNG o WEBP (máx. 10MB)</span>
+                        </div>
+                    </div>
+                )}
             </div>
             
             <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
@@ -445,9 +688,23 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
                 </div>
             </div>
 
-            <button type="submit" className="btn-primary" disabled={rentalLoading || availabilityConflicts.length > 0} style={{ width: '100%', marginTop: '10px', height: '48px', justifyContent: 'center', fontSize: '15px', fontWeight: 700 }}>
+            <button 
+                type="submit" 
+                className="btn-primary" 
+                disabled={rentalLoading || availabilityConflicts.length > 0 || !!blacklistedWarning} 
+                style={{ 
+                    width: '100%', 
+                    marginTop: '10px', 
+                    height: '48px', 
+                    justifyContent: 'center', 
+                    fontSize: '15px', 
+                    fontWeight: 700,
+                    opacity: blacklistedWarning ? 0.6 : 1,
+                    cursor: blacklistedWarning ? 'not-allowed' : 'pointer'
+                }}
+            >
                 <Calendar size={20} />
-                <span>{rentalLoading ? 'Procesando...' : 'Reservar'}</span>
+                <span>{rentalLoading ? 'Procesando...' : blacklistedWarning ? 'Cliente en Lista Negra' : 'Reservar'}</span>
             </button>
         </form>
         );
@@ -468,7 +725,7 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
 
     return (
         <div className="modal-overlay">
-            <div className="modal-content glass-card" style={{ maxWidth: '850px' }}>
+            <div className="modal-content glass-card" style={{ maxWidth: '800px', width: '90%' }}>
                 <div className="modal-header">
                     <h2>Detalles del Vehículo</h2>
                     <button className="btn-icon" onClick={onClose}><X size={20} /></button>
@@ -517,8 +774,13 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
                     <div className="maintenance-section-container">
                         {/* Sync comment to force tab label update */}
                         <div className="detail-tabs" style={{ display: 'flex', gap: '8px', marginBottom: '20px', borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '0 16px' }}>
-                            <button className={`tab-btn ${activeTab === 'maintenance' ? 'active' : ''}`} onClick={() => { setActiveTab('maintenance'); setEditingRentalId(null); setEditingLogId(null); }} style={{ padding:'12px', background:'none', border:'none', color:activeTab==='maintenance'?'#0ea5e9':'#94a3b8', borderBottom:activeTab==='maintenance'?'2px solid #0ea5e9':'none', cursor:'pointer' }}>Gastos del Vehículo</button>
-                            <button className={`tab-btn ${activeTab === 'agenda' ? 'active' : ''}`} onClick={() => { setActiveTab('agenda'); setEditingRentalId(null); setEditingLogId(null); }} style={{ padding:'12px', background:'none', border:'none', color:activeTab==='agenda'?'#0ea5e9':'#94a3b8', borderBottom:activeTab==='agenda'?'2px solid #0ea5e9':'none', cursor:'pointer' }}>Agenda</button>
+                            <button 
+                                className={`tab-btn ${activeTab === 'agenda' ? 'active' : ''}`} 
+                                onClick={() => { setActiveTab('agenda'); setEditingRentalId(null); setEditingLogId(null); }} 
+                                style={{ padding:'12px', background:'none', border:'none', color:activeTab==='agenda'?'#0ea5e9':'#94a3b8', borderBottom:activeTab==='agenda'?'2px solid #0ea5e9':'none', cursor:'pointer' }}
+                            >
+                                Agenda
+                            </button>
                             <button 
                                 className={`tab-btn ${activeTab === 'new-rental' ? 'active' : ''}`} 
                                 onClick={() => {
@@ -535,6 +797,13 @@ export const VehicleDetailModal = ({ vehicle, isOpen, onClose }) => {
                                 style={{ padding:'12px', background:'none', border:'none', color:activeTab==='new-rental'?'#10b981':'#94a3b8', borderBottom:activeTab==='new-rental'?'2px solid #10b981':'none', cursor:'pointer' }}
                             >
                                 {editingRentalId ? 'Editar Renta' : 'Nueva Renta'}
+                            </button>
+                            <button 
+                                className={`tab-btn ${activeTab === 'maintenance' ? 'active' : ''}`} 
+                                onClick={() => { setActiveTab('maintenance'); setEditingRentalId(null); setEditingLogId(null); }} 
+                                style={{ padding:'12px', background:'none', border:'none', color:activeTab==='maintenance'?'#0ea5e9':'#94a3b8', borderBottom:activeTab==='maintenance'?'2px solid #0ea5e9':'none', cursor:'pointer' }}
+                            >
+                                Gastos del Vehículo
                             </button>
                         </div>
 

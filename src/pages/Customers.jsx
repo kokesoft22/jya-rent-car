@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Search, UserPlus, AlertTriangle } from 'lucide-react';
-import { useCustomers, useDeleteCustomer } from '../hooks/useCustomers';
+import { Users, Search, UserPlus, AlertTriangle, ShieldAlert, Filter } from 'lucide-react';
+import { useCustomers, useDeleteCustomer, useUnblacklistCustomer } from '../hooks/useCustomers';
 import CustomerRow from '../components/customers/CustomerRow';
 import AddCustomerModal from '../components/customers/AddCustomerModal';
 import EditCustomerModal from '../components/customers/EditCustomerModal';
 import CustomerDetailsModal from '../components/customers/CustomerDetailsModal';
+import BlacklistModal from '../components/customers/BlacklistModal';
 
 import '../components/Customers.css';
 
@@ -13,9 +14,11 @@ const Customers = () => {
     const navigate = useNavigate();
     const { data: customers = [], isLoading, error, refetch } = useCustomers();
     const deleteCustomerMutation = useDeleteCustomer();
+    const unblacklistMutation = useUnblacklistCustomer();
 
     const [searchTerm, setSearchTerm] = useState('');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [filterMode, setFilterMode] = useState('all'); // 'all', 'active', 'blacklisted'
     
     // State for editing
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -25,10 +28,21 @@ const Customers = () => {
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
     const [customerToView, setCustomerToView] = useState(null);
 
-    const filteredCustomers = customers.filter(c =>
-        c.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.id_number?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // State for blacklist modal
+    const [isBlacklistModalOpen, setIsBlacklistModalOpen] = useState(false);
+    const [customerToBlacklist, setCustomerToBlacklist] = useState(null);
+
+    const filteredCustomers = customers.filter(c => {
+        const matchesSearch = 
+            c.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            c.id_number?.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        if (filterMode === 'blacklisted') return matchesSearch && c.is_blacklisted;
+        if (filterMode === 'active') return matchesSearch && !c.is_blacklisted;
+        return matchesSearch;
+    });
+
+    const blacklistedCount = customers.filter(c => c.is_blacklisted).length;
 
     const handleDeleteCustomer = async (id) => {
         try {
@@ -46,6 +60,21 @@ const Customers = () => {
     const handleViewDetails = (customer) => {
         setCustomerToView(customer);
         setIsDetailsModalOpen(true);
+    };
+
+    const handleBlacklist = (customer) => {
+        setCustomerToBlacklist(customer);
+        setIsBlacklistModalOpen(true);
+    };
+
+    const handleUnblacklist = async (customer) => {
+        if (window.confirm(`¿Deseas remover a "${customer.full_name}" de la lista negra?`)) {
+            try {
+                await unblacklistMutation.mutateAsync(customer.id);
+            } catch (err) {
+                console.error(err);
+            }
+        }
     };
 
     return (
@@ -72,6 +101,32 @@ const Customers = () => {
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
+                    </div>
+                </div>
+                <div className="control-section filter-section">
+                    <span className="control-label">Filtrar por</span>
+                    <div className="filter-buttons">
+                        <button 
+                            className={`filter-btn ${filterMode === 'all' ? 'active' : ''}`}
+                            onClick={() => setFilterMode('all')}
+                        >
+                            <Users size={14} />
+                            Todos ({customers.length})
+                        </button>
+                        <button 
+                            className={`filter-btn ${filterMode === 'active' ? 'active' : ''}`}
+                            onClick={() => setFilterMode('active')}
+                        >
+                            <Filter size={14} />
+                            Activos ({customers.length - blacklistedCount})
+                        </button>
+                        <button 
+                            className={`filter-btn filter-btn-danger ${filterMode === 'blacklisted' ? 'active' : ''}`}
+                            onClick={() => setFilterMode('blacklisted')}
+                        >
+                            <ShieldAlert size={14} />
+                            Lista Negra ({blacklistedCount})
+                        </button>
                     </div>
                 </div>
             </div>
@@ -108,10 +163,16 @@ const Customers = () => {
                                         onDelete={handleDeleteCustomer}
                                         onViewDetails={handleViewDetails}
                                         onNewRental={(cust) => navigate('/new-rental', { state: { client: cust } })}
+                                        onBlacklist={handleBlacklist}
+                                        onUnblacklist={handleUnblacklist}
                                     />
                                 ))
                             ) : (
-                                <tr><td colSpan="5" style={{ textAlign: 'center', padding: '40px' }}>No hay clientes encontrados.</td></tr>
+                                <tr><td colSpan="5" style={{ textAlign: 'center', padding: '40px' }}>
+                                    {filterMode === 'blacklisted' 
+                                        ? 'No hay clientes en lista negra.' 
+                                        : 'No hay clientes encontrados.'}
+                                </td></tr>
                             )}
                         </tbody>
                     </table>
@@ -142,6 +203,16 @@ const Customers = () => {
                     setCustomerToView(null);
                 }}
                 customer={customerToView}
+            />
+
+            <BlacklistModal
+                isOpen={isBlacklistModalOpen}
+                onClose={() => {
+                    setIsBlacklistModalOpen(false);
+                    setCustomerToBlacklist(null);
+                }}
+                customer={customerToBlacklist}
+                onBlacklisted={() => refetch()}
             />
         </div>
     );

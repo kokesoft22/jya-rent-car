@@ -9,7 +9,12 @@ import {
     ArrowLeft,
     FileText,
     Loader,
-    AlertTriangle
+    AlertTriangle,
+    ShieldAlert,
+    UploadCloud,
+    Trash2,
+    Image as ImageIcon,
+    ExternalLink
 } from 'lucide-react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -55,6 +60,38 @@ const NewRental = () => {
     const { data: customersList = [] } = useCustomers();
     const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
     const customerDropdownRef = useRef(null);
+    const [blacklistedWarning, setBlacklistedWarning] = useState(null);
+    const [documentFile, setDocumentFile] = useState(null);
+    const [documentPreview, setDocumentPreview] = useState(null);
+    const [existingDocumentUrl, setExistingDocumentUrl] = useState(null);
+    const [isUploadingDoc, setIsUploadingDoc] = useState(false);
+    const docInputRef = useRef(null);
+
+    const handleDocChange = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+            toast.error('Por favor selecciona un archivo de imagen (JPG, PNG, WEBP)');
+            return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            toast.error('La imagen no debe superar los 10MB');
+            return;
+        }
+        setDocumentFile(file);
+        setDocumentPreview(URL.createObjectURL(file));
+    };
+
+    const handleRemoveNewDoc = () => {
+        if (documentPreview) URL.revokeObjectURL(documentPreview);
+        setDocumentFile(null);
+        setDocumentPreview(null);
+        if (docInputRef.current) docInputRef.current.value = '';
+    };
+
+    const handleRemoveExistingDoc = () => {
+        setExistingDocumentUrl(null);
+    };
 
     const {
         register,
@@ -85,10 +122,31 @@ const NewRental = () => {
     const watchedIsReservation = useWatch({ control, name: 'is_reservation' });
     const watchedAmountPaid = useWatch({ control, name: 'amount_paid' });
     const watchedCustomerName = useWatch({ control, name: 'customer_name' });
+    const watchedCustomerIdNumber = useWatch({ control, name: 'customer_id_number' });
 
     const filteredCustomers = customersList.filter(c => 
         (c.full_name?.toLowerCase() || '').startsWith((watchedCustomerName || '').toLowerCase())
     );
+
+    // Auto-detect blacklist when customer name or id is typed or changed
+    useEffect(() => {
+        if (!watchedCustomerIdNumber && !watchedCustomerName) {
+            setBlacklistedWarning(null);
+            return;
+        }
+        const matched = customersList.find(c => 
+            (watchedCustomerIdNumber && c.id_number && c.id_number.trim().toLowerCase() === watchedCustomerIdNumber.trim().toLowerCase()) ||
+            (watchedCustomerName && c.full_name && c.full_name.trim().toLowerCase() === watchedCustomerName.trim().toLowerCase())
+        );
+        if (matched && matched.is_blacklisted) {
+            setBlacklistedWarning({
+                name: matched.full_name,
+                reason: matched.blacklist_reason || 'Sin motivo especificado'
+            });
+        } else if (matched && !matched.is_blacklisted) {
+            setBlacklistedWarning(null);
+        }
+    }, [watchedCustomerIdNumber, watchedCustomerName, customersList]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -105,6 +163,25 @@ const NewRental = () => {
         setValue('customer_id_number', customer.id_number, { shouldValidate: true });
         setValue('customer_phone', customer.phone, { shouldValidate: true });
         setShowCustomerDropdown(false);
+        
+        if (customer.id_document_url) {
+            setExistingDocumentUrl(customer.id_document_url);
+        } else {
+            setExistingDocumentUrl(null);
+        }
+        if (documentPreview) URL.revokeObjectURL(documentPreview);
+        setDocumentFile(null);
+        setDocumentPreview(null);
+        if (docInputRef.current) docInputRef.current.value = '';
+
+        if (customer.is_blacklisted) {
+            setBlacklistedWarning({
+                name: customer.full_name,
+                reason: customer.blacklist_reason || 'Sin motivo especificado'
+            });
+        } else {
+            setBlacklistedWarning(null);
+        }
     };
 
     useEffect(() => {
@@ -117,6 +194,9 @@ const NewRental = () => {
             setValue('customer_name', client.full_name || '');
             setValue('customer_id_number', client.id_number || '');
             setValue('customer_phone', client.phone || '');
+            if (client.id_document_url) {
+                setExistingDocumentUrl(client.id_document_url);
+            }
         }
     }, [location.state, setValue]);
 
@@ -222,25 +302,67 @@ const NewRental = () => {
             if (!vals.customer_name || !vals.customer_id_number || !vals.customer_phone) {
                 return toast.error('Completa la información del cliente');
             }
+            if (blacklistedWarning) {
+                return toast.error(`No se puede rentar a este cliente: está en la lista negra (${blacklistedWarning.reason})`);
+            }
+            const foundBlacklisted = customersList.find(c => 
+                c.is_blacklisted && (
+                    (c.id_number && c.id_number.trim().toLowerCase() === (vals.customer_id_number || '').trim().toLowerCase()) ||
+                    (c.full_name && c.full_name.trim().toLowerCase() === (vals.customer_name || '').trim().toLowerCase())
+                )
+            );
+            if (foundBlacklisted) {
+                setBlacklistedWarning({
+                    name: foundBlacklisted.full_name,
+                    reason: foundBlacklisted.blacklist_reason || 'Sin motivo especificado'
+                });
+                return toast.error(`No se puede rentar a este cliente: está en la lista negra (${foundBlacklisted.blacklist_reason || 'Sin motivo especificado'})`);
+            }
         }
         setStep(prev => Math.min(prev + 1, 3));
     };
 
     const onSubmit = async (data) => {
         try {
+            if (blacklistedWarning) {
+                return toast.error(`No se puede crear el contrato: El cliente está en la lista negra (${blacklistedWarning.reason}).`);
+            }
+
             setLoading(true);
             
+            // Upload document if selected
+            let finalDocUrl = existingDocumentUrl;
+            if (documentFile) {
+                setIsUploadingDoc(true);
+                try {
+                    finalDocUrl = await customerService.uploadDocument(documentFile);
+                } catch (uploadErr) {
+                    toast.error('Error al subir documento: ' + uploadErr.message);
+                } finally {
+                    setIsUploadingDoc(false);
+                }
+            }
+
             // 1. Create or get customer
             let customerId;
             const existingCustomer = await customerService.getByIdNumber(data.customer_id_number);
             
             if (existingCustomer) {
+                if (existingCustomer.is_blacklisted) {
+                    setLoading(false);
+                    return toast.error(`No se puede crear el contrato: El cliente está en la lista negra (${existingCustomer.blacklist_reason || 'Sin motivo especificado'}).`);
+                }
                 customerId = existingCustomer.id;
+                // If a new document was uploaded and customer doesn't have it or it changed, update customer
+                if (finalDocUrl && finalDocUrl !== existingCustomer.id_document_url) {
+                    await customerService.update(existingCustomer.id, { id_document_url: finalDocUrl });
+                }
             } else {
                 const newCustomer = await addCustomerMutation.mutateAsync({
                     full_name: data.customer_name,
                     id_number: data.customer_id_number,
-                    phone: data.customer_phone
+                    phone: data.customer_phone,
+                    id_document_url: finalDocUrl
                 });
                 customerId = newCustomer.id;
             }
@@ -387,16 +509,66 @@ const NewRental = () => {
                                         {filteredCustomers.slice(0, 5).map(c => (
                                             <div 
                                                 key={c.id} 
-                                                className="customer-dropdown-item"
+                                                className={`customer-dropdown-item ${c.is_blacklisted ? 'customer-blacklisted' : ''}`}
                                                 onClick={() => handleSelectCustomer(c)}
                                             >
-                                                <span className="customer-dropdown-name">{c.full_name}</span>
-                                                <span className="customer-dropdown-id">{c.id_number}</span>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
+                                                    {c.is_blacklisted && <ShieldAlert size={14} style={{ color: '#ef4444', flexShrink: 0 }} />}
+                                                    <span className="customer-dropdown-name" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                        {c.full_name}
+                                                    </span>
+                                                </div>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                                                    {c.is_blacklisted && (
+                                                        <span style={{ 
+                                                            fontSize: '10px', 
+                                                            color: '#f87171', 
+                                                            fontWeight: 700, 
+                                                            textTransform: 'uppercase',
+                                                            padding: '2px 6px',
+                                                            borderRadius: '4px',
+                                                            background: 'rgba(239, 68, 68, 0.15)',
+                                                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                                                            whiteSpace: 'nowrap',
+                                                            flexShrink: 0
+                                                        }}>
+                                                            Lista Negra
+                                                        </span>
+                                                    )}
+                                                    <span className="customer-dropdown-id" style={{ whiteSpace: 'nowrap', flexShrink: 0, fontWeight: 500 }}>
+                                                        {c.id_number}
+                                                    </span>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
                                 )}
                             </div>
+                            
+                            {blacklistedWarning && (
+                                <div style={{
+                                    display: 'flex', alignItems: 'flex-start', gap: '14px',
+                                    padding: '16px 18px', margin: '16px 0',
+                                    background: 'rgba(239, 68, 68, 0.08)',
+                                    border: '1px solid rgba(239, 68, 68, 0.25)',
+                                    borderRadius: '12px',
+                                    animation: 'slideInDown 0.3s ease-out'
+                                }}>
+                                    <ShieldAlert size={22} style={{ color: '#f87171', flexShrink: 0, marginTop: '2px' }} />
+                                    <div>
+                                        <div style={{ fontSize: '14px', fontWeight: 700, color: '#f87171', marginBottom: '4px' }}>
+                                            ⛔ Cliente en Lista Negra
+                                        </div>
+                                        <div style={{ fontSize: '13px', color: '#94a3b8', lineHeight: 1.5 }}>
+                                            <strong style={{ color: '#f8fafc' }}>{blacklistedWarning.name}</strong> está en la lista negra.
+                                            No se podrá completar esta renta.
+                                        </div>
+                                        <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '6px', fontStyle: 'italic' }}>
+                                            Motivo: "{blacklistedWarning.reason}"
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                             <div className="form-row">
                                 <div className="form-group">
                                     <label>Cédula / Pasaporte</label>
@@ -406,6 +578,86 @@ const NewRental = () => {
                                     <label>Número de Teléfono</label>
                                     <input type="tel" className="input-field" placeholder="" {...register('customer_phone')} />
                                 </div>
+                            </div>
+
+                            {/* Documento de Identificación */}
+                            <div className="form-group" style={{ marginTop: '14px' }}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <ImageIcon size={15} style={{ color: '#3b82f6' }} />
+                                    Documento de Identificación (Foto Cédula / Pasaporte)
+                                </label>
+
+                                <input
+                                    type="file"
+                                    ref={docInputRef}
+                                    accept="image/*"
+                                    style={{ display: 'none' }}
+                                    onChange={handleDocChange}
+                                />
+
+                                {documentPreview ? (
+                                    <div className="document-preview-card">
+                                        <img src={documentPreview} alt="Nueva foto seleccionada" className="document-preview-img" />
+                                        <div className="document-preview-info">
+                                            <div className="document-filename">{documentFile?.name || 'nueva_foto.jpg'}</div>
+                                            <div className="document-filesize" style={{ color: '#10b981' }}>
+                                                Nueva foto para guardar
+                                            </div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            className="btn-remove-doc"
+                                            onClick={handleRemoveNewDoc}
+                                            title="Cancelar nueva foto"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                ) : existingDocumentUrl ? (
+                                    <div className="document-preview-card">
+                                        <img src={existingDocumentUrl} alt="Documento actual" className="document-preview-img" />
+                                        <div className="document-preview-info">
+                                            <div className="document-filename">Documento Guardado del Cliente</div>
+                                            <a 
+                                                href={existingDocumentUrl} 
+                                                target="_blank" 
+                                                rel="noreferrer"
+                                                className="document-view-link"
+                                            >
+                                                Ver original <ExternalLink size={12} />
+                                            </a>
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '6px' }}>
+                                            <button
+                                                type="button"
+                                                className="btn-subtle"
+                                                style={{ padding: '6px 10px', fontSize: '12px' }}
+                                                onClick={() => docInputRef.current?.click()}
+                                            >
+                                                Cambiar
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="btn-remove-doc"
+                                                onClick={handleRemoveExistingDoc}
+                                                title="Eliminar documento"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div 
+                                        className="document-upload-zone"
+                                        onClick={() => docInputRef.current?.click()}
+                                    >
+                                        <UploadCloud size={28} className="upload-icon" />
+                                        <div className="upload-text">
+                                            <span className="upload-prompt">Haz clic para subir o arrastra la foto del documento</span>
+                                            <span className="upload-subtext">JPG, PNG o WEBP (máx. 10MB)</span>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}

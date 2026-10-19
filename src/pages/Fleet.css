@@ -317,8 +317,7 @@
 .detail-grid {
     flex: 1;
     display: grid !important;
-    grid-template-columns: 1.1fr 1fr;
-    /* Columna izquierda más estrecha */
+    grid-template-columns: 260px 1fr;
     gap: 16px;
     overflow: hidden;
     margin-bottom: 8px;

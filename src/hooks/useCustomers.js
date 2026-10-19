@@ -77,3 +77,40 @@ export const useCustomerRentals = (customerId) => {
     enabled: !!customerId,
   });
 };
+
+export const useBlacklistedCustomers = () => {
+  return useQuery({
+    queryKey: ['blacklisted-customers'],
+    queryFn: customerService.getBlacklisted,
+  });
+};
+
+export const useBlacklistCustomer = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, reason }) => customerService.blacklist(id, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: ['blacklisted-customers'] });
+      toast.success('Cliente añadido a lista negra');
+    },
+    onError: (error) => {
+      toast.error(`Error al añadir a lista negra: ${error.message}`);
+    },
+  });
+};
+
+export const useUnblacklistCustomer = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id) => customerService.unblacklist(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: ['blacklisted-customers'] });
+      toast.success('Cliente removido de lista negra');
+    },
+    onError: (error) => {
+      toast.error(`Error al remover de lista negra: ${error.message}`);
+    },
+  });
+};
