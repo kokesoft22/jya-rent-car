@@ -24,7 +24,7 @@ import { useVehicles } from '../hooks/useVehicles';
 import AddExpenseModal from '../components/finances/AddExpenseModal';
 import EditExpenseModal from '../components/finances/EditExpenseModal';
 import '../components/Finances.css';
-import { getLocalTodayDate } from '../utils/dateUtils';
+import { formatDateSafe, getLocalTodayDate } from '../utils/dateUtils';
 
 const RADIAN = Math.PI / 180;
 const COLORS = ['#06bcf9', '#8b5cf6', '#f59e0b', '#ef4444', '#10b981', '#6366f1'];
@@ -121,7 +121,7 @@ const Finances = () => {
 
         const headers = ['Fecha', 'Descripción', 'Categoría', 'Vehículo', 'Monto'];
         const rows = recentExpenses.map(exp => [
-            new Date(exp.expense_date).toLocaleDateString(),
+            formatDateSafe(exp.expense_date),
             exp.description,
             CATEGORY_TRANSLATIONS[exp.category.toLowerCase()] || exp.category,
             exp.vehicles?.model || 'N/A',
@@ -297,7 +297,7 @@ const Finances = () => {
                                         <td>
                                             <div className="flex-cell">
                                                 <Calendar size={14} className="text-muted" />
-                                                <span>{new Date(exp.expense_date).toLocaleDateString()}</span>
+                                                <span>{formatDateSafe(exp.expense_date)}</span>
                                             </div>
                                         </td>
                                         <td>
