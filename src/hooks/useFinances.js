@@ -36,6 +36,7 @@ export const useAddExpense = () => {
             queryClient.invalidateQueries({ queryKey: ['finances'] });
             queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
             queryClient.invalidateQueries({ queryKey: ['maintenance'] });
+            queryClient.invalidateQueries({ queryKey: ['report-vehicle-profitability'] });
         }
     });
 };
@@ -47,6 +48,7 @@ export const useUpdateExpense = () => {
             queryClient.invalidateQueries({ queryKey: ['finances'] });
             queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
             queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+            queryClient.invalidateQueries({ queryKey: ['report-vehicle-profitability'] });
         },
         onError: (error) => {
             console.error('Error al actualizar gasto:', error);
@@ -62,6 +64,7 @@ export const useDeleteExpense = () => {
             queryClient.invalidateQueries({ queryKey: ['finances'] });
             queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
             queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+            queryClient.invalidateQueries({ queryKey: ['report-vehicle-profitability'] });
             toast.success('Gasto eliminado correctamente');
         },
         onError: (error) => {

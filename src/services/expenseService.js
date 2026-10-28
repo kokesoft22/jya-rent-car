@@ -130,11 +130,11 @@ export const expenseService = {
     async getVehicleProfitability() {
         const { data: vehicles } = await supabase.from('vehicles').select('id, model, license_plate');
         const { data: rentals } = await supabase.from('rentals').select('vehicle_id, amount_paid');
-        const { data: expenses } = await supabase.from('maintenance_logs').select('vehicle_id, cost');
+        const { data: expenses } = await supabase.from('expenses').select('vehicle_id, amount');
 
         const profitability = (vehicles || []).map(v => {
             const vIncome = (rentals || []).filter(r => r.vehicle_id === v.id).reduce((sum, r) => sum + parseFloat(r.amount_paid || 0), 0);
-            const vExpenses = (expenses || []).filter(e => e.vehicle_id === v.id).reduce((sum, e) => sum + parseFloat(e.cost || 0), 0);
+            const vExpenses = (expenses || []).filter(e => e.vehicle_id === v.id).reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
             return {
                 id: v.id,
                 model: v.model,
