@@ -35,6 +35,7 @@ export const useUpdateMaintenanceLog = () => {
       queryClient.invalidateQueries({ queryKey: ['maintenance'] });
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
       queryClient.invalidateQueries({ queryKey: ['finances'] });
+      queryClient.invalidateQueries({ queryKey: ['report-vehicle-profitability'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       toast.success('Registro de mantenimiento actualizado');
     },
@@ -52,6 +53,7 @@ export const useDeleteMaintenanceLog = () => {
       queryClient.invalidateQueries({ queryKey: ['maintenance'] });
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
       queryClient.invalidateQueries({ queryKey: ['finances'] });
+      queryClient.invalidateQueries({ queryKey: ['report-vehicle-profitability'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       toast.success('Registro eliminado');
     },

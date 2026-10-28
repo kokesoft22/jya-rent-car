@@ -106,7 +106,7 @@ export const maintenanceService = {
     async createFromExpense(expense) {
         const log = {
             vehicle_id: expense.vehicle_id,
-            description: expense.description.replace(/^Mantenimiento:\s*/i, '').replace(/^[^\-]*\-\s*/i, '').trim() || expense.description,
+            description: expense.description.replace(/^Mantenimiento:\s*/i, '').replace(/^[^-]*-\s*/i, '').trim() || expense.description,
             cost: expense.amount,
             date: expense.expense_date,
             category: expense.category
@@ -161,7 +161,7 @@ export const maintenanceService = {
                 .eq('id', existing.vehicle_id);
         }
 
-        // 3. Adjust expense if cost or date changed
+        // 3. Keep the corresponding expense in sync with this maintenance log.
         if (existing.cost > 0 || parseFloat(updates.cost) > 0) {
             const { data: vehicle } = await supabase
                 .from('vehicles')
@@ -169,29 +169,54 @@ export const maintenanceService = {
                 .eq('id', existing.vehicle_id)
                 .single();
 
-            const oldDesc = `Mantenimiento: ${vehicle?.model || 'Vehículo'} - ${existing.description}`;
-            const newDesc = `Mantenimiento: ${vehicle?.model || 'Vehículo'} - ${updates.description || existing.description}`;
+            const vehicleModel = vehicle?.model || 'Vehículo';
+            const oldDescription = existing.description.trim().toLowerCase();
+            const normalizedVehicleModel = vehicleModel.trim().toLowerCase();
+            const { data: candidateExpenses, error: expenseFetchError } = await supabase
+                .from('expenses')
+                .select('id, description')
+                .eq('vehicle_id', existing.vehicle_id)
+                .eq('amount', existing.cost)
+                .eq('expense_date', existing.date);
 
-            // Easiest way is to try deleting the old expense and recreating it
-            if (existing.cost > 0) {
-                await supabase
-                    .from('expenses')
-                    .delete()
-                    .eq('vehicle_id', existing.vehicle_id)
-                    .eq('amount', existing.cost)
-                    .eq('expense_date', existing.date)
-                    .eq('description', oldDesc);
-            }
+            if (expenseFetchError) throw expenseFetchError;
 
-            if (parseFloat(updates.cost) > 0) {
-                const expense = {
-                    expense_date: updates.date || existing.date,
-                    category: 'maintenance',
-                    description: newDesc,
-                    amount: updates.cost,
-                    vehicle_id: existing.vehicle_id
-                };
-                await supabase.from('expenses').insert([expense]);
+            const matchingExpense = (candidateExpenses || []).find(expense => {
+                let description = expense.description
+                    .replace(/^Mantenimiento:\s*/i, '')
+                    .trim();
+
+                const normalizedDescription = description.toLowerCase();
+                const modelSuffix = ` (${normalizedVehicleModel})`;
+                const modelPrefix = `${normalizedVehicleModel} - `;
+
+                if (normalizedDescription.endsWith(modelSuffix)) {
+                    description = description.slice(0, -modelSuffix.length);
+                } else if (normalizedDescription.startsWith(modelPrefix)) {
+                    description = description.slice(modelPrefix.length);
+                }
+
+                return description.trim().toLowerCase() === oldDescription;
+            });
+
+            const newCost = parseFloat(updates.cost ?? existing.cost) || 0;
+            const newExpense = {
+                expense_date: updates.date || existing.date,
+                category: updates.category || existing.category || 'maintenance',
+                description: `Mantenimiento: ${updates.description || existing.description} (${vehicleModel})`,
+                amount: newCost,
+                vehicle_id: existing.vehicle_id
+            };
+
+            if (matchingExpense) {
+                const { error: expenseUpdateError } = newCost > 0
+                    ? await supabase.from('expenses').update(newExpense).eq('id', matchingExpense.id)
+                    : await supabase.from('expenses').delete().eq('id', matchingExpense.id);
+
+                if (expenseUpdateError) throw expenseUpdateError;
+            } else if (newCost > 0) {
+                const { error: expenseInsertError } = await supabase.from('expenses').insert([newExpense]);
+                if (expenseInsertError) throw expenseInsertError;
             }
         }
 
