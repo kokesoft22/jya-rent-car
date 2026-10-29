@@ -16,7 +16,7 @@ import {
     Edit2
 } from 'lucide-react';
 import { 
-    AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     PieChart, Pie, Cell, Legend, LabelList
 } from 'recharts';
 import { useFinances, useDeleteExpense } from '../hooks/useFinances';
@@ -179,32 +179,23 @@ const Finances = () => {
                     </div>
                     <div className="chart-body" style={{ height: '350px' }}>
                         <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={monthlyData} margin={{ top: 25, right: 50, left: 0, bottom: 0 }}>
-                                <defs>
-                                    <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#06bcf9" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="#06bcf9" stopOpacity={0} />
-                                    </linearGradient>
-                                    <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.2} />
-                                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
+                            <BarChart data={monthlyData} margin={{ top: 25, right: 50, left: 0, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
                                 <XAxis dataKey="month" fontSize={12} stroke="#94a3b8" />
                                 <YAxis fontSize={12} stroke="#94a3b8" />
                                 <Tooltip 
+                                    cursor={false}
                                     contentStyle={{ background: '#101620', border: 'none', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.5)' }}
                                     itemStyle={{ color: '#fff' }}
                                     labelStyle={{ color: '#fff' }}
                                 />
-                                <Area type="monotone" dataKey="income" name="Ingresos" stroke="#06bcf9" fillOpacity={1} fill="url(#colorIncome)" strokeWidth={3}>
+                                <Bar dataKey="income" name="Ingresos" fill="#06bcf9" radius={[4, 4, 0, 0]}>
                                     <LabelList dataKey="income" position="top" offset={12} formatter={(value) => `$${value.toLocaleString()}`} style={{ fill: '#06bcf9', fontSize: '11px', fontWeight: 700 }} />
-                                </Area>
-                                <Area type="monotone" dataKey="expense" name="Gastos" stroke="#ef4444" fillOpacity={1} fill="url(#colorExpense)" strokeWidth={3}>
-                                    <LabelList dataKey="expense" position="bottom" offset={12} formatter={(value) => `$${value.toLocaleString()}`} style={{ fill: '#ef4444', fontSize: '11px', fontWeight: 700 }} />
-                                </Area>
-                            </AreaChart>
+                                </Bar>
+                                <Bar dataKey="expense" name="Gastos" fill="#ef4444" radius={[4, 4, 0, 0]}>
+                                    <LabelList dataKey="expense" position="top" offset={12} formatter={(value) => `$${value.toLocaleString()}`} style={{ fill: '#ef4444', fontSize: '11px', fontWeight: 700 }} />
+                                </Bar>
+                            </BarChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
