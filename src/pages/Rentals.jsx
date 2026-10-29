@@ -6,9 +6,12 @@ import { rentalService } from '../services/rentalService';
 import RentalRow from '../components/rentals/RentalRow';
 import PaymentModal from '../components/rentals/PaymentModal';
 import EditRentalModal from '../components/rentals/EditRentalModal';
+import Pagination from '../components/Pagination';
 import { toast } from 'sonner';
 import '../components/Rentals.css';
 import { getLocalTodayDate } from '../utils/dateUtils';
+
+const RENTALS_PER_PAGE = 20;
 
 const Rentals = () => {
     const { data: rentals = [], isLoading, error, refetch } = useRentals();
@@ -17,6 +20,7 @@ const Rentals = () => {
 
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [rentalPage, setRentalPage] = useState(1);
     
     // Modal states
     const [paymentRental, setPaymentRental] = useState(null);
@@ -51,28 +55,31 @@ const Rentals = () => {
         return searchMatch && r.status === statusFilter;
     }).sort((a, b) => {
         const today = getLocalTodayDate();
-        
-        const getEffectiveOrder = (r) => {
-            const start = r.start_date ? r.start_date.split('T')[0] : '';
-            const end = r.end_date ? r.end_date.split('T')[0] : '';
-            
-            if (r.status === 'active') {
-                if (start <= today && end >= today) return 0; // Activa
-                if (start > today) return 1;                  // Reservada
-                return 2;                                     // Terminada (Auto)
+
+        const getEffectiveOrder = (rental) => {
+            const start = rental.start_date ? rental.start_date.split('T')[0] : '';
+            const end = rental.end_date ? rental.end_date.split('T')[0] : '';
+
+            if (rental.status === 'active') {
+                if (start <= today && end >= today) return 0;
+                if (start > today) return 1;
+                return 2;
             }
-            if (r.status === 'completed') return 2;
-            return 3; // Cancelada u otros
+            if (rental.status === 'completed') return 2;
+            return 3;
         };
 
-        const orderA = getEffectiveOrder(a);
-        const orderB = getEffectiveOrder(b);
+        const orderDifference = getEffectiveOrder(a) - getEffectiveOrder(b);
+        if (orderDifference !== 0) return orderDifference;
 
-        if (orderA !== orderB) return orderA - orderB;
-        
-        // Secondary sort: most recent end date first
-        return new Date(b.end_date) - new Date(a.end_date);
+        return (Date.parse(b.end_date || '') || 0) - (Date.parse(a.end_date || '') || 0);
     });
+    const rentalTotalPages = Math.ceil(filteredRentals.length / RENTALS_PER_PAGE);
+    const currentRentalPage = Math.min(rentalPage, Math.max(rentalTotalPages, 1));
+    const paginatedRentals = filteredRentals.slice(
+        (currentRentalPage - 1) * RENTALS_PER_PAGE,
+        currentRentalPage * RENTALS_PER_PAGE
+    );
 
     const handleCompleteRental = async (id) => {
         if (window.confirm('¿Estás seguro de que deseas marcar esta renta como completada? El vehículo volverá a estar disponible.')) {
@@ -119,7 +126,10 @@ const Rentals = () => {
                             type="text"
                             placeholder="Por cliente o vehículo..."
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e) => {
+                                setSearchTerm(e.target.value);
+                                setRentalPage(1);
+                            }}
                         />
                     </div>
                 </div>
@@ -129,19 +139,31 @@ const Rentals = () => {
                     <div className="filter-group">
                         <button
                             className={`filter-btn ${statusFilter === 'all' ? 'active' : ''}`}
-                            onClick={() => setStatusFilter('all')}
+                            onClick={() => {
+                                setStatusFilter('all');
+                                setRentalPage(1);
+                            }}
                         >Todas</button>
                         <button
                             className={`filter-btn ${statusFilter === 'active' ? 'active' : ''}`}
-                            onClick={() => setStatusFilter('active')}
+                            onClick={() => {
+                                setStatusFilter('active');
+                                setRentalPage(1);
+                            }}
                         >Activas</button>
                         <button
                             className={`filter-btn ${statusFilter === 'reserved' ? 'active' : ''}`}
-                            onClick={() => setStatusFilter('reserved')}
+                            onClick={() => {
+                                setStatusFilter('reserved');
+                                setRentalPage(1);
+                            }}
                         >Reservadas</button>
                         <button
                             className={`filter-btn ${statusFilter === 'completed' ? 'active' : ''}`}
-                            onClick={() => setStatusFilter('completed')}
+                            onClick={() => {
+                                setStatusFilter('completed');
+                                setRentalPage(1);
+                            }}
                         >Completadas</button>
                     </div>
                 </div>
@@ -172,8 +194,8 @@ const Rentals = () => {
                         <tbody>
                             {isLoading ? (
                                 <tr><td colSpan="7" style={{ textAlign: 'center', padding: '40px' }}>Cargando rentas...</td></tr>
-                            ) : filteredRentals.length > 0 ? (
-                                filteredRentals.map(r => (
+                            ) : paginatedRentals.length > 0 ? (
+                                paginatedRentals.map(r => (
                                     <RentalRow
                                         key={r.id}
                                         rental={r}
@@ -195,6 +217,13 @@ const Rentals = () => {
                         </tbody>
                     </table>
                 </div>
+                <Pagination
+                    currentPage={currentRentalPage}
+                    totalPages={rentalTotalPages}
+                    totalItems={filteredRentals.length}
+                    itemsPerPage={RENTALS_PER_PAGE}
+                    onPageChange={setRentalPage}
+                />
             </div>
 
             <PaymentModal

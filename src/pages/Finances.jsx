@@ -23,10 +23,12 @@ import { useFinances, useDeleteExpense } from '../hooks/useFinances';
 import { useVehicles } from '../hooks/useVehicles';
 import AddExpenseModal from '../components/finances/AddExpenseModal';
 import EditExpenseModal from '../components/finances/EditExpenseModal';
+import Pagination from '../components/Pagination';
 import '../components/Finances.css';
 import { formatDateSafe, getLocalTodayDate } from '../utils/dateUtils';
 
 const RADIAN = Math.PI / 180;
+const EXPENSES_PER_PAGE = 20;
 const COLORS = ['#06bcf9', '#8b5cf6', '#f59e0b', '#ef4444', '#10b981', '#6366f1'];
 const CATEGORY_TRANSLATIONS = {
     maintenance: 'Mantenimiento',
@@ -82,6 +84,7 @@ const FinanceCard = ({ title, amount, icon: Icon, trend, color, label }) => (
 
 const Finances = () => {
     const [searchTerm, setSearchTerm] = useState('');
+    const [expensePage, setExpensePage] = useState(1);
     const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
     const [editingExpense, setEditingExpense] = useState(null);
     const { data: financesData, isLoading, error } = useFinances();
@@ -109,6 +112,12 @@ const Finances = () => {
         return exp.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                translatedCategory.toLowerCase().includes(searchTerm.toLowerCase());
     });
+    const expenseTotalPages = Math.ceil(filteredExpenses.length / EXPENSES_PER_PAGE);
+    const currentExpensePage = Math.min(expensePage, Math.max(expenseTotalPages, 1));
+    const paginatedExpenses = filteredExpenses.slice(
+        (currentExpensePage - 1) * EXPENSES_PER_PAGE,
+        currentExpensePage * EXPENSES_PER_PAGE
+    );
 
     const exportToCSV = () => {
         const escapeCSV = (val) => {
@@ -262,7 +271,10 @@ const Finances = () => {
                                 type="text" 
                                 placeholder="Buscar gastos..." 
                                 value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onChange={(e) => {
+                                    setSearchTerm(e.target.value);
+                                    setExpensePage(1);
+                                }}
                             />
                         </div>
                         <button className="btn-icon"><Filter size={18} /></button>
@@ -282,8 +294,8 @@ const Finances = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredExpenses.length > 0 ? (
-                                filteredExpenses.map((exp) => (
+                            {paginatedExpenses.length > 0 ? (
+                                paginatedExpenses.map((exp) => (
                                     <tr key={exp.id}>
                                         <td>
                                             <div className="flex-cell">
@@ -373,11 +385,21 @@ const Finances = () => {
                         </tbody>
                     </table>
                 </div>
+                <Pagination
+                    currentPage={currentExpensePage}
+                    totalPages={expenseTotalPages}
+                    totalItems={filteredExpenses.length}
+                    itemsPerPage={EXPENSES_PER_PAGE}
+                    onPageChange={setExpensePage}
+                />
             </div>
 
             <AddExpenseModal 
                 isOpen={isExpenseModalOpen} 
-                onClose={() => setIsExpenseModalOpen(false)} 
+                onClose={() => {
+                    setIsExpenseModalOpen(false);
+                    setExpensePage(1);
+                }}
                 vehicles={vehicles}
             />
             <EditExpenseModal
