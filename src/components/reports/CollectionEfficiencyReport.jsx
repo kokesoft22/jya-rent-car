@@ -1,6 +1,6 @@
 import React from 'react';
 import { Loader, ArrowLeft, Target, TrendingUp, AlertCircle } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LabelList } from 'recharts';
 import { useCollectionEfficiency } from '../../hooks/useReportsData';
 import '../Reports.css';
 
@@ -73,7 +73,17 @@ const CollectionEfficiencyReport = ({ onBack }) => {
                 <div style={{ height: '350px' }}>
                     {data && data.some(d => d.facturado > 0 || d.cobrado > 0) ? (
                         <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={data} margin={{ top: 30, right: 40, left: 10, bottom: 10 }}>
+                            <AreaChart data={data} margin={{ top: 30, right: 40, left: 10, bottom: 10 }}>
+                                <defs>
+                                    <linearGradient id="colorFacturado" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="#94a3b8" stopOpacity={0} />
+                                    </linearGradient>
+                                    <linearGradient id="colorCobrado" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#06bcf9" stopOpacity={0.6} />
+                                        <stop offset="95%" stopColor="#06bcf9" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
                                 <XAxis dataKey="month" stroke="#94a3b8" fontSize={12} />
                                 <YAxis stroke="#94a3b8" fontSize={12} />
@@ -83,9 +93,45 @@ const CollectionEfficiencyReport = ({ onBack }) => {
                                     formatter={(value) => `$${value.toLocaleString()}`}
                                 />
                                 <Legend />
-                                <Line type="monotone" dataKey="facturado" name="Monto Facturado (Contratos)" stroke="#94a3b8" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
-                                <Line type="monotone" dataKey="cobrado" name="Monto Cobrado (Real)" stroke="#06bcf9" strokeWidth={3} dot={{ r: 3 }} activeDot={{ r: 5 }} />
-                            </LineChart>
+                                <Area type="monotone" dataKey="facturado" name="Monto Facturado (Contratos)" stroke="#94a3b8" fillOpacity={1} fill="url(#colorFacturado)" strokeWidth={2}>
+                                    <LabelList
+                                        dataKey="facturado"
+                                        position="top"
+                                        fill="#94a3b8"
+                                        fontSize={12}
+                                        fontWeight="bold"
+                                        formatter={(value) => value > 0 ? `$${value.toLocaleString()}` : ''}
+                                    />
+                                </Area>
+                                <Area type="monotone" dataKey="cobrado" name="Monto Cobrado (Real)" stroke="#06bcf9" fillOpacity={1} fill="url(#colorCobrado)" strokeWidth={3}>
+                                    <LabelList
+                                        dataKey="cobrado"
+                                        content={(props) => {
+                                            const { x, y, value, index } = props;
+                                            if (!value || value <= 0) return null;
+
+                                            const currentData = data[index];
+                                            if (currentData && parseFloat(currentData.cobrado) === parseFloat(currentData.facturado)) {
+                                                return null;
+                                            }
+
+                                            return (
+                                                <text
+                                                    x={x}
+                                                    y={y}
+                                                    dy={20}
+                                                    fill="#06bcf9"
+                                                    fontSize={12}
+                                                    fontWeight="bold"
+                                                    textAnchor="middle"
+                                                >
+                                                    ${value.toLocaleString()}
+                                                </text>
+                                            );
+                                        }}
+                                    />
+                                </Area>
+                            </AreaChart>
                         </ResponsiveContainer>
                     ) : (
                         <div className="flex flex-col items-center justify-center h-full text-muted">
