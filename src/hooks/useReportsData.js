@@ -7,12 +7,12 @@ export const useCollectionEfficiency = () => {
         queryKey: ['report-collection-efficiency'],
         queryFn: async () => {
             const now = new Date();
-            const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+            const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
             
             const { data: rentals, error } = await supabase
                 .from('rentals')
                 .select('start_date, total_amount, amount_paid')
-                .gte('start_date', twelveMonthsAgo.toISOString())
+                .gte('start_date', sixMonthsAgo.toISOString())
                 .neq('status', 'cancelled');
                 
             if (error) throw error;
@@ -20,7 +20,7 @@ export const useCollectionEfficiency = () => {
             const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
             const monthlyData = [];
 
-            for (let i = 11; i >= 0; i--) {
+            for (let i = 5; i >= 0; i--) {
                 const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
                 const month = d.getMonth();
                 const year = d.getFullYear();

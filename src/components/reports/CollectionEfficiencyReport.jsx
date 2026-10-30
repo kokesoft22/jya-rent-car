@@ -1,20 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Loader, ArrowLeft, Target, TrendingUp, AlertCircle } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LabelList } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useCollectionEfficiency } from '../../hooks/useReportsData';
 import '../Reports.css';
 
 const CollectionEfficiencyReport = ({ onBack }) => {
     const { data, isLoading, error } = useCollectionEfficiency();
-    const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 768px)').matches);
-
-    useEffect(() => {
-        const mediaQuery = window.matchMedia('(max-width: 768px)');
-        const updateViewport = (event) => setIsMobile(event.matches);
-
-        mediaQuery.addEventListener('change', updateViewport);
-        return () => mediaQuery.removeEventListener('change', updateViewport);
-    }, []);
 
     if (isLoading) {
         return (
@@ -29,10 +20,9 @@ const CollectionEfficiencyReport = ({ onBack }) => {
         return <div className="p-10 text-center error-text">Error al cargar el reporte: {error.message}</div>;
     }
 
-    const periodMonths = isMobile ? 6 : 12;
-    const reportData = isMobile ? data?.slice(-6) : data;
-    const totalBilled = reportData?.reduce((sum, item) => sum + item.facturado, 0) || 0;
-    const totalCollected = reportData?.reduce((sum, item) => sum + item.cobrado, 0) || 0;
+    const periodMonths = 6;
+    const totalBilled = data?.reduce((sum, item) => sum + item.facturado, 0) || 0;
+    const totalCollected = data?.reduce((sum, item) => sum + item.cobrado, 0) || 0;
     const avgEfficiency = totalBilled > 0 ? Math.round((totalCollected / totalBilled) * 100) : 0;
 
     return (
@@ -81,9 +71,9 @@ const CollectionEfficiencyReport = ({ onBack }) => {
                     <h3>Flujo de Facturación vs Cobranza</h3>
                 </div>
                 <div style={{ height: '350px' }}>
-                    {reportData && reportData.some(d => d.facturado > 0 || d.cobrado > 0) ? (
+                    {data && data.some(d => d.facturado > 0 || d.cobrado > 0) ? (
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={reportData} margin={{ top: 30, right: 40, left: 10, bottom: 10 }} barGap={6} barCategoryGap="20%">
+                            <LineChart data={data} margin={{ top: 30, right: 40, left: 10, bottom: 10 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
                                 <XAxis dataKey="month" stroke="#94a3b8" fontSize={12} />
                                 <YAxis stroke="#94a3b8" fontSize={12} />
@@ -93,27 +83,9 @@ const CollectionEfficiencyReport = ({ onBack }) => {
                                     formatter={(value) => `$${value.toLocaleString()}`}
                                 />
                                 <Legend />
-                                <Bar dataKey="facturado" name="Monto Facturado (Contratos)" fill="#94a3b8" radius={[4, 4, 0, 0]} maxBarSize={38}>
-                                    <LabelList
-                                        dataKey="facturado" 
-                                        position="top" 
-                                        fill="#94a3b8" 
-                                        fontSize={12} 
-                                        fontWeight="bold"
-                                        formatter={(value) => value > 0 ? `$${value.toLocaleString()}` : ''}
-                                    />
-                                </Bar>
-                                <Bar dataKey="cobrado" name="Monto Cobrado (Real)" fill="#06bcf9" radius={[4, 4, 0, 0]} maxBarSize={38}>
-                                    <LabelList
-                                        dataKey="cobrado" 
-                                        position="top"
-                                        fill="#06bcf9"
-                                        fontSize={12}
-                                        fontWeight="bold"
-                                        formatter={(value) => value > 0 ? `$${value.toLocaleString()}` : ''}
-                                    />
-                                </Bar>
-                            </BarChart>
+                                <Line type="monotone" dataKey="facturado" name="Monto Facturado (Contratos)" stroke="#94a3b8" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                                <Line type="monotone" dataKey="cobrado" name="Monto Cobrado (Real)" stroke="#06bcf9" strokeWidth={3} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                            </LineChart>
                         </ResponsiveContainer>
                     ) : (
                         <div className="flex flex-col items-center justify-center h-full text-muted">
