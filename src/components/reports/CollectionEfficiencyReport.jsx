@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Loader, ArrowLeft, Target, TrendingUp, AlertCircle } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LabelList } from 'recharts';
 import { useCollectionEfficiency } from '../../hooks/useReportsData';
@@ -6,6 +6,15 @@ import '../Reports.css';
 
 const CollectionEfficiencyReport = ({ onBack }) => {
     const { data, isLoading, error } = useCollectionEfficiency();
+    const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 768px)').matches);
+
+    useEffect(() => {
+        const mediaQuery = window.matchMedia('(max-width: 768px)');
+        const updateViewport = (event) => setIsMobile(event.matches);
+
+        mediaQuery.addEventListener('change', updateViewport);
+        return () => mediaQuery.removeEventListener('change', updateViewport);
+    }, []);
 
     if (isLoading) {
         return (
@@ -20,9 +29,10 @@ const CollectionEfficiencyReport = ({ onBack }) => {
         return <div className="p-10 text-center error-text">Error al cargar el reporte: {error.message}</div>;
     }
 
-    // Calcular promedios
-    const totalBilled = data?.reduce((sum, item) => sum + item.facturado, 0) || 0;
-    const totalCollected = data?.reduce((sum, item) => sum + item.cobrado, 0) || 0;
+    const periodMonths = isMobile ? 6 : 12;
+    const reportData = isMobile ? data?.slice(-6) : data;
+    const totalBilled = reportData?.reduce((sum, item) => sum + item.facturado, 0) || 0;
+    const totalCollected = reportData?.reduce((sum, item) => sum + item.cobrado, 0) || 0;
     const avgEfficiency = totalBilled > 0 ? Math.round((totalCollected / totalBilled) * 100) : 0;
 
     return (
@@ -33,7 +43,7 @@ const CollectionEfficiencyReport = ({ onBack }) => {
                 </button>
                 <div>
                     <h2 className="text-2xl font-bold text-white">Facturado vs. Cobrado</h2>
-                    <p className="text-muted">Análisis de efectividad en la recolección de pagos en los últimos 12 meses.</p>
+                    <p className="text-muted">Análisis de efectividad en la recolección de pagos en los últimos {periodMonths} meses.</p>
                 </div>
             </div>
 
@@ -44,7 +54,7 @@ const CollectionEfficiencyReport = ({ onBack }) => {
                             <Target size={24} />
                         </div>
                     </div>
-                    <span className="text-muted text-sm block mb-1">Efectividad Total (12 meses)</span>
+                    <span className="text-muted text-sm block mb-1">Efectividad Total ({periodMonths} meses)</span>
                     <h3 className="text-3xl font-bold text-white">
                         {avgEfficiency}%
                     </h3>
@@ -71,9 +81,9 @@ const CollectionEfficiencyReport = ({ onBack }) => {
                     <h3>Flujo de Facturación vs Cobranza</h3>
                 </div>
                 <div style={{ height: '350px' }}>
-                    {data && data.some(d => d.facturado > 0 || d.cobrado > 0) ? (
+                    {reportData && reportData.some(d => d.facturado > 0 || d.cobrado > 0) ? (
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={data} margin={{ top: 30, right: 40, left: 10, bottom: 10 }} barGap={6} barCategoryGap="20%">
+                            <BarChart data={reportData} margin={{ top: 30, right: 40, left: 10, bottom: 10 }} barGap={6} barCategoryGap="20%">
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
                                 <XAxis dataKey="month" stroke="#94a3b8" fontSize={12} />
                                 <YAxis stroke="#94a3b8" fontSize={12} />
@@ -108,7 +118,7 @@ const CollectionEfficiencyReport = ({ onBack }) => {
                     ) : (
                         <div className="flex flex-col items-center justify-center h-full text-muted">
                             <AlertCircle size={40} className="mb-4 opacity-50" />
-                            <p>No hay datos suficientes en los últimos 12 meses para mostrar la gráfica.</p>
+                            <p>No hay datos suficientes en los últimos {periodMonths} meses para mostrar la gráfica.</p>
                         </div>
                     )}
                 </div>
